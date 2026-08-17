@@ -52,10 +52,36 @@ const resultBookSummary = document.getElementById('resultBookSummary');
 const recommendationsContainer = document.getElementById('recommendationsContainer');
 
 
+// Safe localStorage wrapper to prevent browser crashes on file:// URLs or privacy sandbox blocks
+const safeStorage = {
+    getItem(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            console.warn(`Storage reading failed for key "${key}":`, e);
+            return null;
+        }
+    },
+    setItem(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            console.warn(`Storage writing failed for key "${key}":`, e);
+        }
+    },
+    removeItem(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.warn(`Storage removal failed for key "${key}":`, e);
+        }
+    }
+};
+
 // 2. Initialize Application Settings
 function initSettings() {
-    const savedMode = localStorage.getItem('shelf_scanner_mode');
-    const savedKey = localStorage.getItem('shelf_scanner_key');
+    const savedMode = safeStorage.getItem('shelf_scanner_mode');
+    const savedKey = safeStorage.getItem('shelf_scanner_key');
 
     if (savedMode) {
         state.apiMode = savedMode;
@@ -123,14 +149,14 @@ saveSettings.addEventListener('click', () => {
         return;
     }
 
-    localStorage.setItem('shelf_scanner_mode', chosenMode);
+    safeStorage.setItem('shelf_scanner_mode', chosenMode);
     state.apiMode = chosenMode;
 
     if (enteredKey) {
-        localStorage.setItem('shelf_scanner_key', enteredKey);
+        safeStorage.setItem('shelf_scanner_key', enteredKey);
         state.geminiApiKey = enteredKey;
     } else {
-        localStorage.removeItem('shelf_scanner_key');
+        safeStorage.removeItem('shelf_scanner_key');
         state.geminiApiKey = '';
     }
 
