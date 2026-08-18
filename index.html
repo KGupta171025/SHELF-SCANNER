@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHELF-SCANNER | AI-Powered Bookshelf Discovery</title>
+    <title>ShelfScanner | AI-Powered Bookshelf Scanner & Recommender</title>
     <!-- Premium Google Fonts: Outfit for Headings, Inter for Body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,168 +15,272 @@
 <body class="dark-theme">
     <div class="glass-bg"></div>
 
+    <!-- Top Navigation Header -->
     <header>
         <div class="header-container">
-            <div class="logo">
-                <i class="fa-solid fa-book-open-reader logo-icon"></i>
-                <span class="logo-text">SHELF<span class="highlight">-SCANNER</span></span>
+            <div class="header-left">
+                <button id="hamburgerBtn" class="btn-hamburger" title="Toggle Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <i class="fa-solid fa-book-open-reader logo-icon"></i>
+                    <span class="logo-text">Shelf<span class="highlight">Scanner</span></span>
+                </div>
             </div>
-            <button id="settingsBtn" class="btn btn-icon" title="Settings">
-                <i class="fa-solid fa-gear"></i> Settings
-            </button>
+            <div class="header-right">
+                <button id="donateBtn" class="btn btn-donate">
+                    <i class="fa-solid fa-heart"></i> <span>Donate</span>
+                </button>
+                <button id="themeToggleBtn" class="btn btn-theme" title="Toggle Light/Dark Theme">
+                    <i class="fa-solid fa-moon theme-icon"></i>
+                </button>
+                <button id="contactBtn" class="btn btn-contact">
+                    <i class="fa-solid fa-envelope"></i> <span>Contact</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="main-container">
-        <!-- Left Side: Scanner Controls -->
-        <section class="scanner-section card">
-            <div class="card-header">
-                <h2><i class="fa-solid fa-expand"></i> Bookshelf Scanner</h2>
-                <p>Upload a bookshelf photo or capture one to analyze your taste and find recommendations.</p>
-            </div>
-
-            <!-- Tab Navigation -->
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="uploadTab">
-                    <i class="fa-solid fa-file-image"></i> Upload Image
+    <div class="portal-container">
+        <!-- Sidebar Drawer Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="homePage">
+                    <i class="fa-solid fa-house"></i> <span>Home</span>
+                </a>
+                <a href="#" class="nav-item" data-page="scannerPage">
+                    <i class="fa-solid fa-expand"></i> <span>Book Scanner</span>
+                </a>
+                <a href="#" class="nav-item" data-page="readingListPage">
+                    <i class="fa-solid fa-book-bookmark"></i> <span>Reading List</span>
+                </a>
+                <a href="#" class="nav-item" id="sidebarSettingsBtn">
+                    <i class="fa-solid fa-sliders"></i> <span>Configuration</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="sidebarDonateBtn" class="btn btn-donate btn-full-width">
+                    <i class="fa-solid fa-heart"></i> Donate
                 </button>
-                <button class="tab-btn" data-tab="cameraTab" id="cameraTabTrigger">
-                    <i class="fa-solid fa-camera"></i> Live Camera
-                </button>
             </div>
+        </aside>
 
-            <!-- Tab Contents -->
-            <div class="tab-content active" id="uploadTab">
-                <div class="drop-zone" id="dropZone">
-                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
-                    <p class="drop-text">Drag & drop bookshelf image here</p>
-                    <p class="or-text">or</p>
-                    <label for="fileInput" class="btn btn-primary">Browse Files</label>
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                    <p class="file-limits">Supports JPG, PNG, WEBP (Max 5MB)</p>
-                </div>
-            </div>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- PAGE 1: Home Landing Page -->
+            <div id="homePage" class="page-view active">
+                <section class="hero-section">
+                    <h1 class="hero-title">AI bookshelf scanner and book recommender</h1>
+                    <p class="hero-subtitle">Find the perfect book for you.</p>
+                    <button class="btn btn-primary btn-lg cta-scan-trigger">
+                        <i class="fa-solid fa-camera"></i> Start Scanning
+                    </button>
+                </section>
 
-            <div class="tab-content" id="cameraTab">
-                <div class="camera-container">
-                    <video id="webcam" autoplay playsinline></video>
-                    <canvas id="photoCanvas" style="display: none;"></canvas>
-                    <div class="camera-overlay">
-                        <div class="scan-frame"></div>
+                <section class="promo-card card cta-scan-trigger">
+                    <div class="promo-icon-wrapper">
+                        <i class="fa-solid fa-book-open promo-icon"></i>
                     </div>
-                    <div class="camera-controls">
-                        <button id="captureBtn" class="btn btn-capture" title="Capture Cover">
-                            <i class="fa-solid fa-circle-dot"></i> Capture
-                        </button>
+                    <div class="promo-content">
+                        <h3>AI Book Discovery</h3>
+                        <p>Take a photo of an entire bookshelf at stores, the library, or a friend's house, and we'll help you figure out which ones you'll like!</p>
+                        <span class="promo-link">Start scanning <i class="fa-solid fa-chevron-right"></i></span>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <!-- Reading Preferences (Visible for both tabs) -->
-            <div class="form-group preferences-group">
-                <label for="preferencesInput"><i class="fa-solid fa-wand-magic-sparkles"></i> Customize Suggestions (Optional)</label>
-                <input type="text" id="preferencesInput" placeholder="e.g. self-help, technical ML books, easy reads, fiction">
-            </div>
-
-            <!-- Preview Zone (Shows when file is loaded) -->
-            <div id="previewZone" class="preview-zone" style="display: none;">
-                <img id="imagePreview" src="" alt="Bookshelf Preview">
-                <div class="preview-actions">
-                    <button id="resetBtn" class="btn btn-secondary"><i class="fa-solid fa-trash"></i> Reset</button>
-                    <button id="scanBtn" class="btn btn-accent"><i class="fa-solid fa-wand-magic-sparkles"></i> Scan Bookshelf</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Right Side: Discovery Results -->
-        <section class="results-section">
-            <!-- State 1: Placeholder/Welcome -->
-            <div id="resultsPlaceholder" class="placeholder-view card">
-                <div class="placeholder-content">
-                    <div class="scanner-animation">
-                        <div class="scanner-line"></div>
-                        <i class="fa-solid fa-book placeholder-book"></i>
-                    </div>
-                    <h3>Ready to Discover</h3>
-                    <p>Provide a photo of a shelf of books on the left, add optional interests, and hit <strong>Scan Bookshelf</strong>. Gemini AI will identify your collection and recommend new reads matching your taste.</p>
-                </div>
-            </div>
-
-            <!-- State 2: Loading State -->
-            <div id="resultsLoading" class="loading-view card" style="display: none;">
-                <div class="loader">
-                    <div class="spinner"></div>
-                    <div class="pulse-text">AI is reading the bookshelf...</div>
-                </div>
-                <div class="scanning-effect"></div>
-            </div>
-
-            <!-- State 3: Display Results -->
-            <div id="resultsContent" class="results-container" style="display: none;">
-                <!-- Scanned Bookshelf taste analysis profile -->
-                <div class="scanned-book-card card">
-                    <div class="book-card-layout">
-                        <!-- Dynamic CSS Book Pile / Shelf representation -->
-                        <div class="dynamic-cover-wrapper">
-                            <div class="shelf-books-pile">
-                                <div class="css-book-pile-item book-1" id="pileBook1"></div>
-                                <div class="css-book-pile-item book-2" id="pileBook2"></div>
-                                <div class="css-book-pile-item book-3" id="pileBook3"></div>
-                            </div>
+                <section class="how-it-works-section">
+                    <h2 class="section-title">How It Works</h2>
+                    <div class="steps-grid">
+                        <div class="step-card card">
+                            <div class="step-num">1</div>
+                            <h3>Upload Photo</h3>
+                            <p>Take a photo of an entire bookshelf and our AI will identify each book.</p>
                         </div>
-                        <div class="book-info-wrapper">
-                            <span class="badge" id="resultShelfTaste">Shelf Taste Profile</span>
-                            <h1 class="book-title" id="resultShelfTitle">Taste Analysis</h1>
-                            <p class="book-summary" id="resultShelfSummary">
-                                Scanned taste analysis goes here...
-                            </p>
-                            
-                            <!-- Detected Books List -->
-                            <div class="detected-books-section">
-                                <h3><i class="fa-solid fa-list-check"></i> Scanned Titles:</h3>
-                                <ul class="detected-books-list" id="detectedBooksList">
-                                    <li>Book 1 by Author</li>
-                                    <li>Book 2 by Author</li>
-                                </ul>
-                            </div>
+                        <div class="step-card card">
+                            <div class="step-num">2</div>
+                            <h3>Set Preferences</h3>
+                            <p>Tell us about your reading interests and preferences to improve recommendations.</p>
+                        </div>
+                        <div class="step-card card">
+                            <div class="step-num">3</div>
+                            <h3>Find Matching Books</h3>
+                            <p>Discover which books best match your taste with our AI-powered recommendations.</p>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Recommendations Section -->
-                <h2 class="recommendations-heading"><i class="fa-solid fa-star"></i> AI Recommendations</h2>
-                <div class="recommendations-grid" id="recommendationsContainer">
-                    <!-- Recommendation Card 1 (Will be dynamically generated) -->
-                    <div class="rec-card card">
-                        <div class="rec-card-inner">
-                            <div class="dynamic-cover-wrapper mini-cover">
-                                <div class="css-book">
-                                    <div class="book-spine"></div>
-                                    <div class="book-cover">
-                                        <div class="cover-design">
-                                            <div class="cover-accent-line"></div>
-                                            <h4>atomic habits</h4>
-                                            <p>James Clear</p>
+                <section class="cta-bottom card">
+                    <div class="cta-bottom-icon">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h2>Start Using ShelfScanner Today</h2>
+                    <p>Never miss a great book again. Our app helps you quickly find books that match your unique reading preferences even in a crowded bookshelf.</p>
+                    <button class="btn btn-primary cta-scan-trigger">Get Started Now</button>
+                </section>
+            </div>
+
+            <!-- PAGE 2: Book Scanner Page -->
+            <div id="scannerPage" class="page-view">
+                <div class="workspace-grid">
+                    <!-- Left: Control Panel -->
+                    <div class="scanner-section card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-expand"></i> Bookshelf Scanner</h2>
+                            <p>Upload a bookshelf photo or capture one to identify titles and get suggestions.</p>
+                        </div>
+
+                        <!-- Tab Navigation -->
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="uploadTab">
+                                <i class="fa-solid fa-file-image"></i> Upload Image
+                            </button>
+                            <button class="tab-btn" data-tab="cameraTab" id="cameraTabTrigger">
+                                <i class="fa-solid fa-camera"></i> Live Camera
+                            </button>
+                        </div>
+
+                        <!-- Tab Contents -->
+                        <div class="tab-content active" id="uploadTab">
+                            <div class="drop-zone" id="dropZone">
+                                <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                                <p class="drop-text">Drag & drop bookshelf image here</p>
+                                <p class="or-text">or</p>
+                                <label for="fileInput" class="btn btn-primary">Browse Files</label>
+                                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                                <p class="file-limits">Supports JPG, PNG, WEBP (Max 5MB)</p>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="cameraTab">
+                            <div class="camera-container">
+                                <video id="webcam" autoplay playsinline></video>
+                                <canvas id="photoCanvas" style="display: none;"></canvas>
+                                <div class="camera-overlay">
+                                    <div class="scan-frame"></div>
+                                </div>
+                                <div class="camera-controls">
+                                    <button id="captureBtn" class="btn btn-capture" title="Capture Cover">
+                                        <i class="fa-solid fa-circle-dot"></i> Capture
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reading Preferences (Visible for both tabs) -->
+                        <div class="form-group preferences-group">
+                            <label for="preferencesInput"><i class="fa-solid fa-wand-magic-sparkles"></i> Customize Suggestions (Optional)</label>
+                            <input type="text" id="preferencesInput" placeholder="e.g. self-help, technical ML books, easy reads, fiction">
+                        </div>
+
+                        <!-- Preview Zone (Shows when file is loaded) -->
+                        <div id="previewZone" class="preview-zone" style="display: none;">
+                            <img id="imagePreview" src="" alt="Bookshelf Preview">
+                            <div class="preview-actions">
+                                <button id="resetBtn" class="btn btn-secondary"><i class="fa-solid fa-trash"></i> Reset</button>
+                                <button id="scanBtn" class="btn btn-accent"><i class="fa-solid fa-wand-magic-sparkles"></i> Scan Bookshelf</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Results Panel -->
+                    <div class="results-section">
+                        <!-- State 1: Placeholder -->
+                        <div id="resultsPlaceholder" class="placeholder-view card">
+                            <div class="placeholder-content">
+                                <div class="scanner-animation">
+                                    <div class="scanner-line"></div>
+                                    <i class="fa-solid fa-book placeholder-book"></i>
+                                </div>
+                                <h3>Ready to Discover</h3>
+                                <p>Provide a photo of a shelf of books on the left, add optional interests, and hit <strong>Scan Bookshelf</strong>. Gemini AI will identify your collection and recommend new reads matching your taste.</p>
+                            </div>
+                        </div>
+
+                        <!-- State 2: Loading State -->
+                        <div id="resultsLoading" class="loading-view card" style="display: none;">
+                            <div class="loader">
+                                <div class="spinner"></div>
+                                <div class="pulse-text">AI is reading the bookshelf...</div>
+                            </div>
+                            <div class="scanning-effect"></div>
+                        </div>
+
+                        <!-- State 3: Display Results -->
+                        <div id="resultsContent" class="results-container" style="display: none;">
+                            <div class="scanned-book-card card">
+                                <div class="book-card-layout">
+                                    <!-- Dynamic CSS Book Pile / Shelf representation -->
+                                    <div class="dynamic-cover-wrapper">
+                                        <div class="shelf-books-pile">
+                                            <div class="css-book-pile-item book-1" id="pileBook1"></div>
+                                            <div class="css-book-pile-item book-2" id="pileBook2"></div>
+                                            <div class="css-book-pile-item book-3" id="pileBook3"></div>
+                                        </div>
+                                    </div>
+                                    <div class="book-info-wrapper">
+                                        <span class="badge" id="resultShelfTaste">Shelf Taste Profile</span>
+                                        <h1 class="book-title" id="resultShelfTitle">Taste Analysis</h1>
+                                        <p class="book-summary" id="resultShelfSummary">
+                                            Scanned taste analysis goes here...
+                                        </p>
+                                        
+                                        <!-- Detected Books List -->
+                                        <div class="detected-books-section">
+                                            <h3><i class="fa-solid fa-list-check"></i> Scanned Titles:</h3>
+                                            <ul class="detected-books-list" id="detectedBooksList">
+                                                <!-- Populated dynamically -->
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="rec-info">
-                                <h3 class="rec-title">Atomic Habits</h3>
-                                <p class="rec-author">by James Clear</p>
-                                <div class="rec-reason">
-                                    <i class="fa-solid fa-quote-left quote-icon"></i>
-                                    <p>Reason goes here...</p>
-                                </div>
+
+                            <!-- Recommendations Section -->
+                            <h2 class="recommendations-heading"><i class="fa-solid fa-star"></i> AI Recommendations</h2>
+                            <div class="recommendations-grid" id="recommendationsContainer">
+                                <!-- Populated dynamically -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
 
-    <!-- Settings Modal -->
+            <!-- PAGE 3: Reading List (Permanent Library Gallery) -->
+            <div id="readingListPage" class="page-view">
+                <section class="library-section card">
+                    <div class="library-header">
+                        <div class="library-title-group">
+                            <h2><i class="fa-solid fa-book-bookmark"></i> My Reading Library</h2>
+                            <p>Browse through all the books you've scanned, imported, and discovered.</p>
+                        </div>
+                        <div class="library-actions">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                <input type="text" id="librarySearchInput" placeholder="Search by title or author...">
+                            </div>
+                            <select id="libraryGenreFilter" class="genre-filter">
+                                <option value="all">All Genres</option>
+                            </select>
+                            <button id="importLibraryBtn" class="btn btn-icon">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Import Library
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bookshelf-container">
+                        <!-- Wooden/Glass Shelves visual container -->
+                        <div class="virtual-shelf" id="virtualShelfContainer">
+                            <!-- Books will be populated here as horizontal shelves -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- Modal 1: Configuration Settings -->
     <div id="settingsModal" class="modal" style="display: none;">
         <div class="modal-content card">
             <div class="modal-header">
@@ -225,36 +329,8 @@
             </div>
         </div>
     </div>
-    <!-- New Section: Permanent Virtual Bookshelf Library -->
-    <section class="library-section card">
-        <div class="library-header">
-            <div class="library-title-group">
-                <h2><i class="fa-solid fa-book-bookmark"></i> My Digital Bookshelf</h2>
-                <p>Browse through all the books you've scanned and discovered.</p>
-            </div>
-            <div class="library-actions">
-                <div class="search-box">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="librarySearchInput" placeholder="Search by title or author...">
-                </div>
-                <select id="libraryGenreFilter" class="genre-filter">
-                    <option value="all">All Genres</option>
-                </select>
-                <button id="importLibraryBtn" class="btn btn-icon">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> Import Library
-                </button>
-            </div>
-        </div>
-        
-        <div class="bookshelf-container">
-            <!-- Wooden/Glass Shelves visual container -->
-            <div class="virtual-shelf" id="virtualShelfContainer">
-                <!-- Books will be populated here as horizontal shelves -->
-            </div>
-        </div>
-    </section>
 
-    <!-- Import Library Modal -->
+    <!-- Modal 2: Import Goodreads Library -->
     <div id="importModal" class="modal" style="display: none;">
         <div class="modal-content card">
             <div class="modal-header">
@@ -280,8 +356,58 @@
         </div>
     </div>
 
+    <!-- Modal 3: Donations Modal -->
+    <div id="donateModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-heart"></i> Support ShelfScanner</h2>
+                <span class="close-modal" id="closeDonateModal">&times;</span>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fa-solid fa-circle-nodes" style="font-size: 3rem; color: var(--accent-secondary); margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 118, 117, 0.4))"></i>
+                <p>This is a custom interactive demonstration of the **ShelfScanner** project—a powerful AI bookshelf scanner and book discovery dashboard built using Google's Gemini 3.6.</p>
+                <p>If you like this project and would like to support future open-source AI integrations, feel free to give it a star on GitHub!</p>
+                <div class="form-actions" style="justify-content: center; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 1.25rem;">
+                    <a href="https://github.com/KGupta171025/SHELF-SCANNER" target="_blank" class="btn btn-accent"><i class="fa-brands fa-github"></i> Star on GitHub</a>
+                    <button id="closeDonateBtn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4: Contact Form Modal -->
+    <div id="contactModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-envelope"></i> Contact Us</h2>
+                <span class="close-modal" id="closeContactModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="contactForm" onsubmit="event.preventDefault(); alert('Message sent successfully (Simulation)!'); document.getElementById('contactModal').style.display='none';">
+                    <div class="form-group">
+                        <label for="contactName">Name</label>
+                        <input type="text" id="contactName" required placeholder="Enter your name" style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); color: var(--text-primary); outline: none;">
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="contactEmail">Email</label>
+                        <input type="email" id="contactEmail" required placeholder="Enter your email" style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); color: var(--text-primary); outline: none;">
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="contactMessage">Message</label>
+                        <textarea id="contactMessage" rows="4" required placeholder="Enter your message..." style="width: 100%;"></textarea>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                        <button type="button" id="cancelContact" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-accent">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2026 SHELF-SCANNER | AI Bookshelf Discovery Engine. Built with FastAPI, Vanilla JS, and Gemini 3.6.</p>
+        <p>&copy; 2026 ShelfScanner. All rights reserved. &bull; <a href="#" id="footerPrivacyLink">Privacy Policy</a> &bull; <a href="#" id="footerTermsLink">Terms & Conditions</a></p>
     </footer>
 
     <script src="app.js"></script>

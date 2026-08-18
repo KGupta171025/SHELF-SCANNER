@@ -1,5 +1,5 @@
 /* ==========================================
-   SHELF-SCANNER APPLICATION LOGIC
+   SHELF-SCANNER APPLICATION LOGIC (PORTAL)
    ========================================== */
 
 // Global error logging to capture and alert any runtime errors immediately
@@ -54,7 +54,19 @@ const state = {
 document.addEventListener('DOMContentLoaded', () => {
     
     // 2. DOM Elements
+    // Navigation & Portal Layout
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const navItems = document.querySelectorAll('.nav-item');
+    const pageViews = document.querySelectorAll('.page-view');
+    const ctaScanTriggers = document.querySelectorAll('.cta-scan-trigger');
+
+    // Theme toggles
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    // Modals & triggers
     const settingsBtn = document.getElementById('settingsBtn');
+    const sidebarSettingsBtn = document.getElementById('sidebarSettingsBtn');
     const settingsModal = document.getElementById('settingsModal');
     const closeSettings = document.getElementById('closeSettings');
     const cancelSettings = document.getElementById('cancelSettings');
@@ -65,6 +77,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const radioModeBackend = document.querySelector('input[value="backend"]');
     const radioModeDirect = document.querySelector('input[value="direct"]');
 
+    // Donate Modals
+    const donateBtn = document.getElementById('donateBtn');
+    const sidebarDonateBtn = document.getElementById('sidebarDonateBtn');
+    const donateModal = document.getElementById('donateModal');
+    const closeDonateModal = document.getElementById('closeDonateModal');
+    const closeDonateBtn = document.getElementById('closeDonateBtn');
+
+    // Contact Modals
+    const contactBtn = document.getElementById('contactBtn');
+    const contactModal = document.getElementById('contactModal');
+    const closeContactModal = document.getElementById('closeContactModal');
+    const cancelContact = document.getElementById('cancelContact');
+
+    // Scanner components
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     const dropZone = document.getElementById('dropZone');
@@ -73,24 +99,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagePreview = document.getElementById('imagePreview');
     const resetBtn = document.getElementById('resetBtn');
     const scanBtn = document.getElementById('scanBtn');
-    
-    // Preferences Inputs
     const preferencesInput = document.getElementById('preferencesInput');
 
-    const cameraTabTrigger = document.getElementById('cameraTabTrigger');
+    // Webcam components
     const webcam = document.getElementById('webcam');
     const photoCanvas = document.getElementById('photoCanvas');
     const captureBtn = document.getElementById('captureBtn');
 
+    // Results components
     const resultsPlaceholder = document.getElementById('resultsPlaceholder');
     const resultsLoading = document.getElementById('resultsLoading');
     const resultsContent = document.getElementById('resultsContent');
-
     const resultShelfSummary = document.getElementById('resultShelfSummary');
     const detectedBooksList = document.getElementById('detectedBooksList');
     const recommendationsContainer = document.getElementById('recommendationsContainer');
 
-    // Library Extensions DOM Elements
+    // Library DOM Components
     const virtualShelfContainer = document.getElementById('virtualShelfContainer');
     const librarySearchInput = document.getElementById('librarySearchInput');
     const libraryGenreFilter = document.getElementById('libraryGenreFilter');
@@ -102,8 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadSampleLibraryBtn = document.getElementById('loadSampleLibraryBtn');
     const importPastedTitles = document.getElementById('importPastedTitles');
 
-    // 3. Initialize Settings & Library from safeStorage
+    // 3. Initialize Settings, Themes & Library from safeStorage
     function initSettings() {
+        // Mode & API Keys
         const savedMode = safeStorage.getItem('shelf_scanner_mode');
         const savedKey = safeStorage.getItem('shelf_scanner_key');
 
@@ -121,6 +146,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedKey) {
             state.geminiApiKey = savedKey;
             if (apiKeyInput) apiKeyInput.value = savedKey;
+        }
+
+        // Theme Initialization
+        const savedTheme = safeStorage.getItem('shelf_scanner_theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+            updateThemeIcon(true);
+        } else {
+            document.body.classList.remove('light-theme');
+            updateThemeIcon(false);
         }
 
         initLibrary();
@@ -147,43 +182,112 @@ document.addEventListener('DOMContentLoaded', () => {
         safeStorage.setItem('shelf_scanner_library', JSON.stringify(state.library));
     }
 
-    // Run settings initialization on page load
     initSettings();
 
-    // 4. Modal event listeners
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
-            initSettings(); // Reload latest saved settings values
-            if (settingsModal) settingsModal.style.display = 'flex';
+    // 4. SPA Page Navigation
+    function showPage(pageId) {
+        pageViews.forEach(view => {
+            view.classList.remove('active');
         });
+        const activeView = document.getElementById(pageId);
+        if (activeView) activeView.classList.add('active');
+
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-page') === pageId) {
+                item.classList.add('active');
+            }
+        });
+
+        // Close mobile drawer on routing
+        if (sidebar) sidebar.classList.remove('open');
+
+        // Stop camera stream if we navigate away from scanner workspace
+        if (pageId !== 'scannerPage' || state.activeTab !== 'cameraTab') {
+            stopCamera();
+        } else if (pageId === 'scannerPage' && state.activeTab === 'cameraTab') {
+            startCamera();
+        }
     }
 
-    const hideModal = () => { 
-        if (settingsModal) settingsModal.style.display = 'none'; 
-    };
-    
-    if (closeSettings) closeSettings.addEventListener('click', hideModal);
-    if (cancelSettings) cancelSettings.addEventListener('click', hideModal);
-
-    // Close modal if user clicks outside content card
-    window.addEventListener('click', (e) => {
-        if (e.target === settingsModal) hideModal();
-    });
-
-    // Toggle backend/direct mode options
-    document.getElementsByName('apiMode').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (apiKeyContainer) {
-                if (e.target.value === 'direct') {
-                    apiKeyContainer.style.display = 'block';
-                } else {
-                    apiKeyContainer.style.display = 'none';
-                }
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const pageId = item.getAttribute('data-page');
+            if (pageId) {
+                e.preventDefault();
+                showPage(pageId);
             }
         });
     });
 
-    // Toggle API Key text visibility
+    // Landing Page CTAs trigger scanner
+    ctaScanTriggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            showPage('scannerPage');
+        });
+    });
+
+    // Mobile Hamburger Toggle
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+        });
+
+        // Close sidebar if user clicks out
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== hamburgerBtn) {
+                sidebar.classList.remove('open');
+            }
+        });
+    }
+
+    // Theme Switch toggles body class
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const isLight = document.body.classList.toggle('light-theme');
+            safeStorage.setItem('shelf_scanner_theme', isLight ? 'light' : 'dark');
+            updateThemeIcon(isLight);
+        });
+    }
+
+    function updateThemeIcon(isLight) {
+        const icon = themeToggleBtn ? themeToggleBtn.querySelector('.theme-icon') : null;
+        if (icon) {
+            if (isLight) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+    }
+
+    // 5. Modal Controllers
+    const openModal = (m) => { if (m) m.style.display = 'flex'; };
+    const hideModal = (m) => { if (m) m.style.display = 'none'; };
+
+    // Settings Modal
+    const triggerSettings = (e) => {
+        e.preventDefault();
+        initSettings();
+        openModal(settingsModal);
+        if (sidebar) sidebar.classList.remove('open');
+    };
+    if (settingsBtn) settingsBtn.addEventListener('click', triggerSettings);
+    if (sidebarSettingsBtn) sidebarSettingsBtn.addEventListener('click', triggerSettings);
+    if (closeSettings) closeSettings.addEventListener('click', () => hideModal(settingsModal));
+    if (cancelSettings) cancelSettings.addEventListener('click', () => hideModal(settingsModal));
+
+    // Toggle Mode Options
+    document.getElementsByName('apiMode').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (apiKeyContainer) {
+                apiKeyContainer.style.display = (e.target.value === 'direct') ? 'block' : 'none';
+            }
+        });
+    });
+
+    // Toggle Password Visibility
     if (toggleApiKey && apiKeyInput) {
         toggleApiKey.addEventListener('click', () => {
             const icon = toggleApiKey.querySelector('i');
@@ -197,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Save Settings Modal Options
     if (saveSettings) {
         saveSettings.addEventListener('click', () => {
             const checkedRadio = document.querySelector('input[name="apiMode"]:checked');
@@ -220,37 +323,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.geminiApiKey = '';
             }
 
-            hideModal();
+            hideModal(settingsModal);
         });
     }
 
-    // 5. Tab swapping navigation
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetTab = btn.getAttribute('data-tab');
-            
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            
-            btn.classList.add('active');
-            
-            const targetEl = document.getElementById(targetTab);
-            if (targetEl) targetEl.classList.add('active');
-            state.activeTab = targetTab;
-            
-            if (targetTab === 'cameraTab') {
-                startCamera();
-            } else {
-                stopCamera();
-            }
-        });
+    // Donate Modals
+    const donateTriggers = [donateBtn, sidebarDonateBtn];
+    donateTriggers.forEach(t => {
+        if (t) t.addEventListener('click', () => openModal(donateModal));
+    });
+    if (closeDonateModal) closeDonateModal.addEventListener('click', () => hideModal(donateModal));
+    if (closeDonateBtn) closeDonateBtn.addEventListener('click', () => hideModal(donateModal));
+
+    // Contact Modals
+    if (contactBtn) contactBtn.addEventListener('click', () => openModal(contactModal));
+    if (closeContactModal) closeContactModal.addEventListener('click', () => hideModal(contactModal));
+    if (cancelContact) cancelContact.addEventListener('click', () => hideModal(contactModal));
+
+    // Close modals on overlay clicks
+    window.addEventListener('click', (e) => {
+        if (e.target === settingsModal) hideModal(settingsModal);
+        if (e.target === importModal) hideModal(importModal);
+        if (e.target === donateModal) hideModal(donateModal);
+        if (e.target === contactModal) hideModal(contactModal);
     });
 
     // 6. Camera stream controls
     async function startCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             alert('Camera APIs are not supported by this browser or connection. Please upload an image cover instead.');
-            // Fall back to upload tab
             const uploadTabBtn = document.querySelector('[data-tab="uploadTab"]');
             if (uploadTabBtn) uploadTabBtn.click();
             return;
@@ -265,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Camera Access Error:', err);
             alert('Could not access camera. Please check browser permissions or upload an image instead.');
-            // Fall back to upload tab
             const uploadTabBtn = document.querySelector('[data-tab="uploadTab"]');
             if (uploadTabBtn) uploadTabBtn.click();
         }
@@ -279,6 +379,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (webcam) webcam.srcObject = null;
     }
 
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            const targetEl = document.getElementById(targetTab);
+            if (targetEl) targetEl.classList.add('active');
+            state.activeTab = targetTab;
+            
+            if (targetTab === 'cameraTab') {
+                startCamera();
+            } else {
+                stopCamera();
+            }
+        });
+    });
+
     if (captureBtn) {
         captureBtn.addEventListener('click', () => {
             if (!state.stream || !webcam || !photoCanvas) return;
@@ -289,11 +407,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const ctx = photoCanvas.getContext('2d');
             if (!ctx) return;
             
-            // Mirror flip left-to-right to match screen preview
             ctx.translate(photoCanvas.width, 0);
             ctx.scale(-1, 1);
             ctx.drawImage(webcam, 0, 0, photoCanvas.width, photoCanvas.height);
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             
             const dataUrl = photoCanvas.toDataURL('image/jpeg');
             state.selectedImageBase64 = dataUrl;
@@ -302,15 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
             stopCamera();
             showPreview(dataUrl);
         });
-    }
-
-    function dataURLtoFile(dataurl, filename) {
-        let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        return new File([u8arr], filename, {type:mime});
     }
 
     // 7. File Selection & Drag-and-Drop
@@ -350,17 +458,12 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Selected file is not an image (detected type: ${file.type || 'unknown'}). Please upload an image file.`);
             return;
         }
-        
         state.selectedImageFile = file;
         
         const reader = new FileReader();
         reader.onload = (e) => {
             state.selectedImageBase64 = e.target.result;
             showPreview(e.target.result);
-        };
-        reader.onerror = (err) => {
-            console.error("FileReader failed:", err);
-            alert("Failed to read the selected file.");
         };
         reader.readAsDataURL(file);
     }
@@ -378,7 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (previewZone) previewZone.style.display = 'flex';
     }
 
-    // Reset scanner layout to capture/upload state
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
             state.selectedImageBase64 = null;
@@ -569,7 +671,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (resultShelfSummary) resultShelfSummary.textContent = data.shelf_summary;
         
-        // Populating the detected books list
         if (detectedBooksList) {
             detectedBooksList.innerHTML = '';
             if (data.scanned_books && data.scanned_books.length > 0) {
@@ -584,7 +685,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Clear and build Recommendations Grid with horizontal cards housing mini 3D covers!
         if (recommendationsContainer) {
             recommendationsContainer.innerHTML = '';
             
@@ -629,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resultsContent) resultsContent.style.display = 'block';
     }
 
-    // 10. My Digital Bookshelf Layout Renderer
+    // 10. Virtual Bookshelf Renderer
     function renderShelf() {
         if (!virtualShelfContainer) return;
         virtualShelfContainer.innerHTML = '';
@@ -645,11 +745,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (filteredBooks.length === 0) {
-            virtualShelfContainer.innerHTML = '<div class="empty-shelf-message"><i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>Your shelf is empty. Scan a bookshelf or click "Import Library" to add books.</div>';
+            virtualShelfContainer.innerHTML = '<div class="empty-shelf-message"><i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>Your reading list is empty. Go to the "Book Scanner" to scan or "Import Library".</div>';
             return;
         }
         
-        // Group books into rows representing shelves of up to 6 books
         const booksPerShelf = 6;
         for (let i = 0; i < filteredBooks.length; i += booksPerShelf) {
             const shelfBooks = filteredBooks.slice(i, i + booksPerShelf);
@@ -676,7 +775,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
                 
-                // Clicking a book displays its saved details and original recommendations
                 bookItem.addEventListener('click', () => {
                     displayLibraryBookDetails(book);
                 });
@@ -689,6 +787,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayLibraryBookDetails(book) {
+        showPage('scannerPage'); // Redirect to scanner workspace
+        
         if (resultsPlaceholder) resultsPlaceholder.style.display = 'none';
         if (resultsLoading) resultsLoading.style.display = 'none';
         
@@ -743,7 +843,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (resultsContent) resultsContent.style.display = 'block';
         
-        // Scroll to details section smoothly
         const resultsEl = document.querySelector('.results-section');
         if (resultsEl) {
             resultsEl.scrollIntoView({ behavior: 'smooth' });
@@ -755,7 +854,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentSelection = libraryGenreFilter.value;
         
         libraryGenreFilter.innerHTML = '<option value="all">All Genres</option>';
-        
         const genres = new Set();
         state.library.forEach(book => {
             if (book.genre) genres.add(book.genre);
@@ -783,21 +881,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 12. Import Goodreads Library Modal Controls
     if (importLibraryBtn) {
-        importLibraryBtn.addEventListener('click', () => {
-            if (importModal) importModal.style.display = 'flex';
-        });
+        importLibraryBtn.addEventListener('click', () => openModal(importModal));
     }
-
-    const hideImportModal = () => { 
-        if (importModal) importModal.style.display = 'none'; 
-    };
-
-    if (closeImportModal) closeImportModal.addEventListener('click', hideImportModal);
-    if (cancelImport) cancelImport.addEventListener('click', hideImportModal);
-
-    window.addEventListener('click', (e) => {
-        if (e.target === importModal) hideImportModal();
-    });
+    if (closeImportModal) closeImportModal.addEventListener('click', () => hideModal(importModal));
+    if (cancelImport) cancelImport.addEventListener('click', () => hideModal(importModal));
 
     // Populate Sample Library (Goodreads Sim)
     if (loadSampleLibraryBtn) {
@@ -874,7 +961,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Save Custom Pasted Titles
     if (saveImportBtn && importPastedTitles) {
         saveImportBtn.addEventListener('click', () => {
             const text = importPastedTitles.value.trim();
@@ -924,14 +1010,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Helper: Truncate cover title/author
+    // Helper: Truncate cover text
     function truncateText(str, maxLength) {
         if (!str) return '';
         if (str.length <= maxLength) return str;
         return str.substring(0, maxLength - 3) + '...';
     }
 
-    // Helper: Hashing string to get deterministic cover background colors
+    // Helper: Deterministic Hashing
     function hashCode(str) {
         let hash = 0;
         if (!str) return hash;

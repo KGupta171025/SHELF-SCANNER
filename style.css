@@ -1,8 +1,8 @@
-/* ==========================================
-   SHELF-SCANNER DESIGN SYSTEM & STYLESHEET
-   ========================================== */
+/* ========================================================
+   ShelfScanner DESIGN SYSTEM & MAIN STYLESHEET
+   ======================================================== */
 
-/* Variables & Color Palette */
+/* Variables & Color Palette - Default: Dark Theme */
 :root {
     --bg-color: #0b0c10;
     --card-bg: rgba(26, 28, 36, 0.75);
@@ -19,12 +19,38 @@
     --text-secondary: #a0a5b5;
     --text-muted: #6b6f7d;
     
+    /* Portal specific layouts */
+    --sidebar-bg: rgba(18, 19, 26, 0.85);
+    --header-bg: rgba(11, 12, 16, 0.7);
+
     /* Utilities */
     --transition-speed: 0.3s;
     --radius-lg: 16px;
     --radius-md: 10px;
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Inter', sans-serif;
+}
+
+/* Color Palette - Light Theme */
+body.light-theme {
+    --bg-color: #f5f6fa;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(108, 92, 231, 0.5);
+    
+    /* Warm/Soft light accents */
+    --accent-primary: #6c5ce7;
+    --accent-secondary: #ff7675;
+    --accent-glow: rgba(108, 92, 231, 0.2);
+    
+    /* Text colors */
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --text-muted: #b2bec3;
+    
+    /* Portal specific layouts */
+    --sidebar-bg: rgba(255, 255, 255, 0.9);
+    --header-bg: rgba(255, 255, 255, 0.85);
 }
 
 /* Base resets & layouts */
@@ -43,9 +69,10 @@ body {
     flex-direction: column;
     overflow-x: hidden;
     position: relative;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
-/* Futuristic background details */
+/* Background details */
 .glass-bg {
     position: absolute;
     top: 0;
@@ -53,10 +80,15 @@ body {
     width: 100%;
     height: 100%;
     z-index: -1;
-    pointer-events: none; /* Make clicks pass through the background */
+    pointer-events: none;
     overflow: hidden;
     background: radial-gradient(circle at 10% 20%, rgba(125, 95, 255, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(255, 118, 117, 0.08) 0%, transparent 45%);
+}
+
+body.light-theme .glass-bg {
+    background: radial-gradient(circle at 10% 20%, rgba(108, 92, 231, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 118, 117, 0.04) 0%, transparent 45%);
 }
 
 /* Typography */
@@ -66,24 +98,59 @@ h1, h2, h3, h4 {
     letter-spacing: -0.02em;
 }
 
-/* Header */
+/* Top Navigation Header */
 header {
-    background: rgba(11, 12, 16, 0.7);
+    background: var(--header-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 100;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
 }
 
 .header-container {
-    max-width: 1200px;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 1.25rem 2rem;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-hamburger {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    transition: background var(--transition-speed);
+}
+
+.btn-hamburger:hover {
+    background: rgba(125, 95, 255, 0.08);
 }
 
 .logo {
@@ -93,7 +160,7 @@ header {
     font-size: 1.5rem;
     font-weight: 800;
     font-family: var(--font-heading);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
 }
 
 .logo-icon {
@@ -135,7 +202,7 @@ header {
 .btn-primary {
     background: var(--accent-primary);
     color: white;
-    box-shadow: 0 4px 15px rgba(125, 95, 255, 0.3);
+    box-shadow: 0 4px 15px var(--accent-glow);
 }
 
 .btn-primary:hover {
@@ -150,8 +217,18 @@ header {
     color: var(--text-secondary);
 }
 
+body.light-theme .btn-secondary {
+    background: rgba(0, 0, 0, 0.03);
+    color: var(--text-secondary);
+}
+
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+body.light-theme .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.06);
     color: var(--text-primary);
 }
 
@@ -181,40 +258,387 @@ header {
     box-shadow: 0 6px 20px rgba(255, 118, 117, 0.45);
 }
 
-/* Card System (Glassmorphic) */
+.btn-donate {
+    background: rgba(255, 118, 117, 0.08);
+    border: 1px solid rgba(255, 118, 117, 0.2);
+    color: var(--accent-secondary);
+}
+
+.btn-donate:hover {
+    background: var(--accent-secondary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 118, 117, 0.25);
+}
+
+.btn-theme {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.65rem 0.85rem;
+}
+
+.btn-theme:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-contact {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-contact:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-full-width {
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-lg {
+    padding: 0.88rem 2.25rem;
+    font-size: 1.05rem;
+    border-radius: var(--radius-md);
+}
+
+/* Card System */
 .card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background var(--transition-speed);
 }
 
 .card:hover {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Main Container Layout */
-.main-container {
+body.light-theme .card:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Sidebar Dashboard Layout */
+.portal-container {
+    display: flex;
     flex: 1;
-    max-width: 1200px;
-    width: 100%;
-    margin: 2rem auto;
-    padding: 0 2rem;
+    position: relative;
+    height: calc(100vh - 70px);
+}
+
+.sidebar {
+    width: 250px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform var(--transition-speed), background var(--transition-speed), border-color var(--transition-speed);
+    z-index: 90;
+    flex-shrink: 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1.15rem;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all var(--transition-speed);
+}
+
+.nav-item:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+body.light-theme .nav-item:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.nav-item.active {
+    color: var(--accent-primary);
+    background: rgba(125, 95, 255, 0.08);
+}
+
+body.light-theme .nav-item.active {
+    background: rgba(108, 92, 231, 0.08);
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.25rem;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2.5rem 2rem;
+    overflow-y: auto;
+    background: transparent;
+}
+
+/* Mobile Sidebar Drawer Toggles */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        height: calc(100vh - 70px);
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.25);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .btn-hamburger {
+        display: flex;
+    }
+    
+    .main-content {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Page Views system */
+.page-view {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.page-view.active {
+    display: block;
+}
+
+/* ========================================================
+   PAGE 1: Home Landing Page Styles
+   ======================================================== */
+
+.hero-section {
+    text-align: center;
+    padding: 4.5rem 1rem 3.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.25rem;
+    background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .hero-title {
+    background: linear-gradient(135deg, #1e272e 40%, var(--accent-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+    font-size: 1.35rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+/* Promo Card CTA container */
+.promo-card {
+    max-width: 800px;
+    margin: 0 auto 4rem;
+    padding: 1.75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    cursor: pointer;
+    transition: transform var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.promo-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-hover);
+    box-shadow: 0 10px 30px rgba(125, 95, 255, 0.12);
+}
+
+.promo-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: rgba(125, 95, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.promo-icon {
+    font-size: 1.75rem;
+    color: var(--accent-primary);
+}
+
+.promo-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+}
+
+.promo-content p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.promo-link {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--accent-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* How It Works Steps section */
+.how-it-works-section {
+    max-width: 1000px;
+    margin: 0 auto 5rem;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    font-weight: 700;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.step-card {
+    padding: 2.25rem 1.75rem;
+    text-align: center;
+    position: relative;
+    border-color: var(--border-color);
+}
+
+.step-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.light-theme .step-card:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.step-num {
+    width: 38px;
+    height: 38px;
+    background: rgba(125, 95, 255, 0.1);
+    border: 1px solid rgba(125, 95, 255, 0.2);
+    color: var(--accent-primary);
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.05rem;
+}
+
+.step-card h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+}
+
+.step-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Call to Action Bottom Box */
+.cta-bottom {
+    text-align: center;
+    padding: 3.5rem 2rem;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cta-bottom-icon {
+    width: 55px;
+    height: 55px;
+    background: rgba(255, 118, 117, 0.1);
+    color: var(--accent-secondary);
+    font-size: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.25rem;
+}
+
+.cta-bottom h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.cta-bottom p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    max-width: 520px;
+    line-height: 1.55;
+    margin-bottom: 0.75rem;
+}
+
+/* ========================================================
+   PAGE 2: Book Scanner Workspace Layout
+   ======================================================== */
+
+.workspace-grid {
     display: grid;
     grid-template-columns: 1fr 1.25fr;
     gap: 2rem;
 }
 
 @media (max-width: 900px) {
-    .main-container {
+    .workspace-grid {
         grid-template-columns: 1fr;
     }
 }
 
-/* Scanner Section Styles */
 .scanner-section {
     padding: 2rem;
     display: flex;
@@ -242,6 +666,10 @@ header {
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--radius-md);
     padding: 0.25rem;
+}
+
+body.light-theme .tabs {
+    background: rgba(0, 0, 0, 0.04);
 }
 
 .tab-btn {
@@ -293,6 +721,11 @@ header {
     cursor: pointer;
     transition: border-color var(--transition-speed), background var(--transition-speed);
     background: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .drop-zone {
+    border-color: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.01);
 }
 
 .drop-zone.dragover {
@@ -354,6 +787,10 @@ header {
     transition: border-color var(--transition-speed);
 }
 
+body.light-theme .preferences-group input {
+    background: rgba(0, 0, 0, 0.02);
+}
+
 .preferences-group input:focus {
     border-color: var(--accent-primary);
     box-shadow: 0 0 10px rgba(125, 95, 255, 0.15);
@@ -373,7 +810,7 @@ header {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scaleX(-1); /* Mirror view */
+    transform: scaleX(-1);
 }
 
 .camera-overlay {
@@ -443,7 +880,7 @@ header {
     justify-content: center;
 }
 
-/* Results Section */
+/* Results Display Panels */
 .results-section {
     display: flex;
     flex-direction: column;
@@ -451,7 +888,6 @@ header {
     min-height: 500px;
 }
 
-/* Placeholders & Loading states */
 .placeholder-view, .loading-view {
     flex: 1;
     display: flex;
@@ -487,6 +923,10 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+body.light-theme .scanner-animation {
+    border-color: rgba(0, 0, 0, 0.05);
 }
 
 .placeholder-book {
@@ -529,7 +969,6 @@ header {
     animation: pulse 1.5s infinite ease-in-out;
 }
 
-/* Results Content */
 .results-container {
     display: flex;
     flex-direction: column;
@@ -537,7 +976,6 @@ header {
     animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* Scanned Book Card (Top Result) */
 .scanned-book-card {
     padding: 2.25rem;
 }
@@ -555,13 +993,13 @@ header {
     }
 }
 
-/* 3D CSS Stacked Book Pile */
 .dynamic-cover-wrapper {
     perspective: 1000px;
     padding: 10px;
     flex-shrink: 0;
 }
 
+/* 3D Visual Book Pile */
 .shelf-books-pile {
     width: 150px;
     height: 180px;
@@ -582,7 +1020,6 @@ header {
     border-radius: 4px;
     border-left: 12px solid;
     box-shadow: 5px 8px 15px rgba(0, 0, 0, 0.45);
-    background: var(--accent-primary);
     transform-origin: center;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -622,7 +1059,7 @@ header {
     transform: rotateZ(-1deg);
 }
 
-/* Book Details text styling */
+/* Results text details */
 .book-info-wrapper {
     flex: 1;
 }
@@ -652,7 +1089,7 @@ header {
     line-height: 1.6;
 }
 
-/* Detected Books Section List */
+/* Detected Shelf Books */
 .detected-books-section {
     margin-top: 1.5rem;
     border-top: 1px solid var(--border-color);
@@ -699,7 +1136,7 @@ header {
 }
 
 .detected-books-list li::before {
-    content: "\f02d"; /* FontAwesome Book Icon */
+    content: "\f02d";
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
     position: absolute;
@@ -709,7 +1146,7 @@ header {
     font-size: 0.8rem;
 }
 
-/* 3D CSS Book Object Design (Used inside recommendations) */
+/* 3D CSS Book Object Design */
 .css-book {
     width: 120px;
     height: 170px;
@@ -804,7 +1241,7 @@ header {
     z-index: -1;
 }
 
-/* Recommendations Layout: Horizontal rows */
+/* Recommendations Layout */
 .recommendations-heading {
     font-size: 1.25rem;
     margin-top: 1rem;
@@ -929,7 +1366,213 @@ header {
     opacity: 0.5;
 }
 
-/* Modals */
+/* ========================================================
+   PAGE 3: Reading List & Persistent Bookshelf Library
+   ======================================================== */
+
+.library-section {
+    padding: 2.25rem;
+}
+
+.library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.library-title-group h2 {
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.library-title-group h2 i {
+    color: var(--accent-primary);
+}
+
+.library-title-group p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.library-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.search-box input {
+    padding: 0.6rem 1rem 0.6rem 2.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    outline: none;
+    font-size: 0.85rem;
+    width: 240px;
+    transition: border-color var(--transition-speed);
+}
+
+body.light-theme .search-box input {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.search-box input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(125, 95, 255, 0.15);
+}
+
+.genre-filter {
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition-speed);
+}
+
+body.light-theme .genre-filter {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.genre-filter:focus {
+    border-color: var(--accent-primary);
+}
+
+.bookshelf-container {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 2rem 1.5rem;
+    overflow: hidden;
+}
+
+body.light-theme .bookshelf-container {
+    background: rgba(0, 0, 0, 0.01);
+}
+
+.virtual-shelf {
+    display: flex;
+    flex-direction: column;
+    gap: 4.5rem;
+    padding-bottom: 2rem;
+}
+
+.shelf-row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+    padding-bottom: 0.5rem;
+    border-bottom: 14px solid #5a3c20; /* Wood plank styling */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+    position: relative;
+    min-height: 150px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-left: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.shelf-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.shelf-row::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.shelf-book-item {
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), z-index var(--transition-speed);
+    flex-shrink: 0;
+    transform-origin: bottom center;
+}
+
+.shelf-book-item .css-book {
+    width: 80px;
+    height: 115px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5);
+    transform: rotateY(-18deg) rotateX(4deg);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.shelf-book-item .book-spine {
+    width: 12px;
+}
+
+.shelf-book-item .book-page {
+    width: 76px;
+    height: 111px;
+}
+
+.shelf-book-item .cover-design {
+    padding: 0.35rem;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.shelf-book-item .cover-accent-line {
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    height: 1px;
+}
+
+.shelf-book-item .cover-design h4 {
+    font-size: 0.52rem;
+    font-weight: 700;
+}
+
+.shelf-book-item .cover-design p {
+    font-size: 0.38rem;
+    margin-top: 0.15rem;
+}
+
+.shelf-book-item:hover {
+    transform: translateY(-10px) scale(1.08);
+    z-index: 100;
+}
+
+.shelf-book-item:hover .css-book {
+    transform: rotateY(0deg) rotateX(0deg);
+    box-shadow: 0 10px 25px rgba(125, 95, 255, 0.25);
+}
+
+.empty-shelf-message {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    padding: 3rem 0;
+    width: 100%;
+}
+
+/* Modals & Inputs */
 .modal {
     position: fixed;
     top: 0;
@@ -1022,6 +1665,10 @@ header {
     height: 100%;
 }
 
+body.light-theme .radio-card {
+    background: rgba(0, 0, 0, 0.01);
+}
+
 .radio-card i {
     font-size: 1.25rem;
     color: var(--text-muted);
@@ -1044,11 +1691,14 @@ header {
     box-shadow: 0 0 12px var(--accent-glow);
 }
 
+body.light-theme .radio-label input:checked + .radio-card {
+    background: rgba(108, 92, 231, 0.05);
+}
+
 .radio-label input:checked + .radio-card i {
     color: var(--accent-primary);
 }
 
-/* API Key Input Form Styles */
 .input-with-icon {
     position: relative;
     display: flex;
@@ -1073,6 +1723,10 @@ header {
     font-size: 0.9rem;
     outline: none;
     transition: border-color var(--transition-speed);
+}
+
+body.light-theme .input-with-icon input {
+    background: rgba(0, 0, 0, 0.02);
 }
 
 .input-with-icon input:focus {
@@ -1111,7 +1765,53 @@ header {
     padding-top: 1.25rem;
 }
 
-/* Footer */
+/* Goodreads Import split modal layouts */
+textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+    transition: border-color var(--transition-speed);
+}
+
+body.light-theme textarea {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+textarea:focus {
+    border-color: var(--accent-primary);
+}
+
+.import-intro {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 1.25rem;
+}
+
+.form-actions-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.25rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.right-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Footer Styling */
 footer {
     text-align: center;
     padding: 2rem;
@@ -1120,6 +1820,21 @@ footer {
     border-top: 1px solid var(--border-color);
     background: rgba(0, 0, 0, 0.1);
     margin-top: auto;
+    transition: background var(--transition-speed);
+}
+
+body.light-theme footer {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+footer a:hover {
+    color: var(--accent-primary);
 }
 
 /* Keyframes & Animations */
@@ -1168,246 +1883,3 @@ footer {
     0%, 100% { top: 5%; }
     50% { top: 95%; }
 }
-
-/* =======================================================
-   MY DIGITAL BOOKSHELF & IMPORT MODAL EXTENSION STYLES
-   ======================================================= */
-
-.library-section {
-    grid-column: 1 / -1; /* Make library row span across both layout columns */
-    padding: 2.25rem;
-    margin-top: 1.5rem;
-}
-
-.library-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.75rem;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-}
-
-.library-title-group h2 {
-    font-size: 1.35rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.library-title-group h2 i {
-    color: var(--accent-primary);
-}
-
-.library-title-group p {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-}
-
-.library-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.search-icon {
-    position: absolute;
-    left: 1rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-
-.search-box input {
-    padding: 0.6rem 1rem 0.6rem 2.25rem;
-    border-radius: var(--radius-md);
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    outline: none;
-    font-size: 0.85rem;
-    width: 240px;
-    transition: border-color var(--transition-speed);
-}
-
-.search-box input:focus {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 10px rgba(125, 95, 255, 0.15);
-}
-
-.genre-filter {
-    padding: 0.6rem 1.25rem;
-    border-radius: var(--radius-md);
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    outline: none;
-    cursor: pointer;
-    transition: border-color var(--transition-speed);
-}
-
-.genre-filter:focus {
-    border-color: var(--accent-primary);
-}
-
-/* Virtual Wooden Bookshelf Styling */
-.bookshelf-container {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    padding: 2rem 1.5rem;
-    overflow: hidden;
-}
-
-.virtual-shelf {
-    display: flex;
-    flex-direction: column;
-    gap: 4.5rem; /* Gap between shelves */
-    padding-bottom: 2rem;
-}
-
-.shelf-row {
-    display: flex;
-    gap: 1.5rem;
-    align-items: flex-end;
-    padding-bottom: 0.5rem;
-    border-bottom: 14px solid #5a3c20; /* Realistic wood shelf */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), inset 0 -2px 5px rgba(0, 0, 0, 0.5);
-    position: relative;
-    min-height: 150px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-    padding-left: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-.shelf-row::-webkit-scrollbar {
-    height: 4px;
-}
-
-.shelf-row::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
-}
-
-/* Book items on the shelf */
-.shelf-book-item {
-    display: inline-block;
-    cursor: pointer;
-    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), z-index var(--transition-speed);
-    flex-shrink: 0;
-    transform-origin: bottom center;
-}
-
-.shelf-book-item .css-book {
-    width: 80px;
-    height: 115px;
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5);
-    transform: rotateY(-18deg) rotateX(4deg);
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
-}
-
-.shelf-book-item .book-spine {
-    width: 12px;
-}
-
-.shelf-book-item .book-page {
-    width: 76px;
-    height: 111px;
-}
-
-.shelf-book-item .cover-design {
-    padding: 0.35rem;
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-.shelf-book-item .cover-accent-line {
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    height: 1px;
-}
-
-.shelf-book-item .cover-design h4 {
-    font-size: 0.52rem;
-    font-weight: 700;
-    -webkit-line-clamp: 4;
-}
-
-.shelf-book-item .cover-design p {
-    font-size: 0.38rem;
-    margin-top: 0.15rem;
-}
-
-.shelf-book-item:hover {
-    transform: translateY(-10px) scale(1.08);
-    z-index: 100;
-}
-
-.shelf-book-item:hover .css-book {
-    transform: rotateY(0deg) rotateX(0deg);
-    box-shadow: 0 10px 25px rgba(125, 95, 255, 0.25);
-}
-
-/* Empty shelf placeholder */
-.empty-shelf-message {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    padding: 3rem 0;
-    width: 100%;
-}
-
-/* Split Import Modal controls */
-textarea {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    padding: 0.75rem 1rem;
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    outline: none;
-    resize: vertical;
-    transition: border-color var(--transition-speed);
-}
-
-textarea:focus {
-    border-color: var(--accent-primary);
-}
-
-.import-intro {
-    font-size: 0.88rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    margin-bottom: 1.25rem;
-}
-
-.form-actions-split {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1.25rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.right-actions {
-    display: flex;
-    gap: 1rem;
-}
-
