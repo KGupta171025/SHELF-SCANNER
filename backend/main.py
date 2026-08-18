@@ -1,7 +1,7 @@
 import io
 import os
-from typing import List
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from typing import List, Optional
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from PIL import Image
@@ -17,47 +17,50 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     print("Warning: GEMINI_API_KEY is not set in environment variables or .env file.")
 
-# 2. Define the Pydantic models for Structured AI Output
+# 2. Define the Pydantic models for Bookshelf Analysis AI Output
+class ScannedBook(BaseModel):
+    title: str = Field(description="Title of the recognized book on the shelf")
+    author: str = Field(description="Author of the recognized book")
+    genre: str = Field(description="Primary genre or category of this book")
+
 class BookRecommendation(BaseModel):
     title: str = Field(description="Title of the recommended book")
     author: str = Field(description="Author of the recommended book")
-    reason: str = Field(description="Detailed reason why this book is recommended based on the scanned book")
+    reason: str = Field(description="Detailed reason why this book is recommended based on the books found on the user's shelf and their preferences")
 
-class BookDetails(BaseModel):
-    title: str = Field(description="Title of the book recognized from the cover")
-    author: str = Field(description="Author of the book")
-    genre: str = Field(description="Primary genre or categories of the book")
-    summary: str = Field(description="A concise 2-3 sentence summary of the book")
+class BookshelfScanResult(BaseModel):
+    scanned_books: List[ScannedBook] = Field(description="List of all visible books recognized on the shelf (up to 10 books)")
     recommendations: List[BookRecommendation] = Field(description="List of 3 similar books recommended to the user")
+    shelf_summary: str = Field(description="A brief 1-2 sentence analysis of the user's reading taste based on the books detected on their shelf")
 
 # 3. Initialize FastAPI App
 app = FastAPI(
-    title="SHELF-SCANNER API",
-    description="Backend API for recognizing books from images and recommending similar titles using Gemini AI.",
-    version="1.0.0"
+    title="SHELF-SCANNER Bookshelf API",
+    description="Backend API for scanning bookshelves from images, analyzing taste, and recommending similar books using Gemini AI.",
+    version="2.0.0"
 )
-
 
 # 4. Configure CORS (Cross-Origin Resource Sharing)
-# This is crucial so our frontend (running on GitHub Pages or a local live-server) can make requests to this backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],                    # In production, specify our GitHub Pages URL instead of "*"
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
-
 # 5. Initialize the Google GenAI Client
-# SDK automatically uses the GEMINI_API_KEY environment variable.
 client = genai.Client()
 
-@app.post("/api/scan", response_model=BookDetails)
-async def scan_book(file: UploadFile = File(...)):
+@app.post("/api/scan", response_model=BookshelfScanResult)
+async def scan_bookshelf(
+    file: UploadFile = File(...),
+    preferences: Optional[str] = Form(None)
+):
     """
-    Receives an image of a book cover, uploads it to Gemini, 
-    recognizes the book, and returns book info with recommendations.
+    Receives an image of a bookshelf, uploads it to Gemini, 
+    recognizes the books on it, incorporates user preferences,
+    and returns a summary + recommendations.
     """
     # Validate file type
     if not file.content_type.startswith("image/"):
@@ -74,36 +77,35 @@ async def scan_book(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Failed to process image: {str(e)}")
 
     try:
-        # Ask Gemini to identify the book and recommend 3 similar books
+        # Build prompt incorporating bookshelf and optional preference parameters
         prompt = (
-            "Analyze this book cover image. Identify the book title and author. "
-            "Then, provide a brief summary, its genre, and recommend 3 other books that a reader of "
-            "this book would enjoy, along with a custom reasoning for each recommendation."
+            "Analyze this image containing a bookshelf or a collection of books. "
+            "Identify as many visible books as you can (up to 10 books) and list their titles, authors, and genres. "
+            "Provide a brief 1-2 sentence summary of the user's reading taste based on these books. "
+            "Finally, recommend 3 other books they might enjoy. "
         )
+        
+        if preferences and preferences.strip():
+            prompt += f"\nNote: The user has specified the following reading preferences/topics they are interested in right now: '{preferences}'. Prioritize recommendations that match these topics while still complementing the existing books on the shelf."
 
         # Call Gemini using the latest Google GenAI SDK
         response = client.models.generate_content(
             model="gemini-3.6-flash",
             contents=[image, prompt],
             config=types.GenerateContentConfig(
-                # Enforce structured output matching our Pydantic schema
                 response_mime_type="application/json",
-                response_schema=BookDetails,
-                temperature=0.2 # Lower temperature for more accurate, consistent recognition
+                response_schema=BookshelfScanResult,
+                temperature=0.2, # Lower temperature for accurate book detection
             )
         )
 
-        # response.text is guaranteed to be a JSON string matching our BookDetails schema
-        # FastAPI will automatically parse this and validate it against the response_model
         import json
         result_data = json.loads(response.text)
         return result_data
 
     except Exception as e:
-        # Log the error and return HTTP 500
         print(f"Gemini API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"AI processing failed: {str(e)}")
-
 
 @app.get("/api/health")
 def health_check():

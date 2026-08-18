@@ -10,26 +10,32 @@ from typing import List
 load_dotenv()
 
 # 2. Define the exact same schemas we used in the backend for consistency
+class ScannedBook(BaseModel):
+    title: str = Field(description="Title of the recognized book on the shelf")
+    author: str = Field(description="Author of the recognized book")
+    genre: str = Field(description="Primary genre or category of this book")
+
 class BookRecommendation(BaseModel):
     title: str = Field(description="Title of the recommended book")
     author: str = Field(description="Author of the recommended book")
-    reason: str = Field(description="Detailed reason why this book is recommended based on the scanned book")
+    reason: str = Field(description="Detailed reason why this book is recommended based on the books found on the user's shelf and their preferences")
 
-class BookDetails(BaseModel):
-    title: str = Field(description="Title of the book recognized from the cover")
-    author: str = Field(description="Author of the book")
-    genre: str = Field(description="Primary genre or categories of the book")
-    summary: str = Field(description="A concise 2-3 sentence summary of the book")
+class BookshelfScanResult(BaseModel):
+    scanned_books: List[ScannedBook] = Field(description="List of all visible books recognized on the shelf (up to 10 books)")
     recommendations: List[BookRecommendation] = Field(description="List of 3 similar books recommended to the user")
+    shelf_summary: str = Field(description="A brief 1-2 sentence analysis of the user's reading taste based on the books detected on their shelf")
 
 def main():
     # 3. Ensure an image path is provided
     if len(sys.argv) < 2:
-        print("Usage: uv run scripts/test_gemini.py <path_to_book_cover_image>")
+        print("Usage: uv run scripts/test_gemini.py <path_to_bookshelf_image> [optional_preferences]")
         sys.exit(1)
 
     image_path = sys.argv[1]
     
+    # Optional reading preferences (concatenated if multiple arguments are passed)
+    preferences = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else ""
+
     # Verify the image file exists
     if not os.path.exists(image_path):
         print(f"Error: File '{image_path}' does not exist.")
@@ -54,12 +60,17 @@ def main():
         sys.exit(1)
 
     # 7. Query Gemini
-    print("Analyzing book cover and generating recommendations...")
+    print("Analyzing bookshelf and generating recommendations...")
     prompt = (
-        "Analyze this book cover image. Identify the book title and author. "
-        "Then, provide a brief summary, its genre, and recommend 3 other books that a reader of "
-        "this book would enjoy, along with a custom reasoning for each recommendation."
+        "Analyze this image containing a bookshelf or a collection of books. "
+        "Identify as many visible books as you can (up to 10 books) and list their titles, authors, and genres. "
+        "Provide a brief 1-2 sentence summary of the user's reading taste based on these books. "
+        "Finally, recommend 3 other books they might enjoy. "
     )
+    
+    if preferences:
+        print(f"Applying user preferences: '{preferences}'")
+        prompt += f"\nNote: The user has specified the following reading preferences/topics they are interested in right now: '{preferences}'. Prioritize recommendations that match these topics while still complementing the existing books on the shelf."
 
     try:
         response = client.models.generate_content(
@@ -67,7 +78,7 @@ def main():
             contents=[image, prompt],
             config=dict(
                 response_mime_type="application/json",
-                response_schema=BookDetails,
+                response_schema=BookshelfScanResult,
                 temperature=0.2
             )
         )

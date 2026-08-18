@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHELF-SCANNER | AI-Powered Book Discovery</title>
+    <title>SHELF-SCANNER | AI-Powered Bookshelf Discovery</title>
     <!-- Premium Google Fonts: Outfit for Headings, Inter for Body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,8 +31,8 @@
         <!-- Left Side: Scanner Controls -->
         <section class="scanner-section card">
             <div class="card-header">
-                <h2><i class="fa-solid fa-expand"></i> Book Scanner</h2>
-                <p>Upload a photo or use your camera to identify any book cover.</p>
+                <h2><i class="fa-solid fa-expand"></i> Bookshelf Scanner</h2>
+                <p>Upload a bookshelf photo or capture one to analyze your taste and find recommendations.</p>
             </div>
 
             <!-- Tab Navigation -->
@@ -49,7 +49,7 @@
             <div class="tab-content active" id="uploadTab">
                 <div class="drop-zone" id="dropZone">
                     <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
-                    <p class="drop-text">Drag & drop your book cover here</p>
+                    <p class="drop-text">Drag & drop bookshelf image here</p>
                     <p class="or-text">or</p>
                     <label for="fileInput" class="btn btn-primary">Browse Files</label>
                     <input type="file" id="fileInput" accept="image/*" style="display: none;">
@@ -72,12 +72,18 @@
                 </div>
             </div>
 
+            <!-- Reading Preferences (Visible for both tabs) -->
+            <div class="form-group preferences-group">
+                <label for="preferencesInput"><i class="fa-solid fa-wand-magic-sparkles"></i> Customize Suggestions (Optional)</label>
+                <input type="text" id="preferencesInput" placeholder="e.g. self-help, technical ML books, easy reads, fiction">
+            </div>
+
             <!-- Preview Zone (Shows when file is loaded) -->
             <div id="previewZone" class="preview-zone" style="display: none;">
-                <img id="imagePreview" src="" alt="Book Cover Preview">
+                <img id="imagePreview" src="" alt="Bookshelf Preview">
                 <div class="preview-actions">
                     <button id="resetBtn" class="btn btn-secondary"><i class="fa-solid fa-trash"></i> Reset</button>
-                    <button id="scanBtn" class="btn btn-accent"><i class="fa-solid fa-wand-magic-sparkles"></i> Scan Book</button>
+                    <button id="scanBtn" class="btn btn-accent"><i class="fa-solid fa-wand-magic-sparkles"></i> Scan Bookshelf</button>
                 </div>
             </div>
         </section>
@@ -92,7 +98,7 @@
                         <i class="fa-solid fa-book placeholder-book"></i>
                     </div>
                     <h3>Ready to Discover</h3>
-                    <p>Provide a book cover on the left and hit <strong>Scan Book</strong>. Gemini AI will automatically identify the title, summarize it, and recommend three similar reads.</p>
+                    <p>Provide a photo of a shelf of books on the left, add optional interests, and hit <strong>Scan Bookshelf</strong>. Gemini AI will identify your collection and recommend new reads matching your taste.</p>
                 </div>
             </div>
 
@@ -100,37 +106,39 @@
             <div id="resultsLoading" class="loading-view card" style="display: none;">
                 <div class="loader">
                     <div class="spinner"></div>
-                    <div class="pulse-text">AI is reading the cover...</div>
+                    <div class="pulse-text">AI is reading the bookshelf...</div>
                 </div>
                 <div class="scanning-effect"></div>
             </div>
 
             <!-- State 3: Display Results -->
             <div id="resultsContent" class="results-container" style="display: none;">
-                <!-- Scanned Book Profile -->
+                <!-- Scanned Bookshelf taste analysis profile -->
                 <div class="scanned-book-card card">
                     <div class="book-card-layout">
-                        <!-- Dynamic CSS Book Cover -->
+                        <!-- Dynamic CSS Book Pile / Shelf representation -->
                         <div class="dynamic-cover-wrapper">
-                            <div class="css-book" id="cssBookCover">
-                                <div class="book-spine"></div>
-                                <div class="book-page"></div>
-                                <div class="book-cover">
-                                    <div class="cover-design">
-                                        <div class="cover-accent-line"></div>
-                                        <h4 id="resultBookTitleCover">Atomic</h4>
-                                        <p id="resultBookAuthorCover">James Clear</p>
-                                    </div>
-                                </div>
+                            <div class="shelf-books-pile">
+                                <div class="css-book-pile-item book-1" id="pileBook1"></div>
+                                <div class="css-book-pile-item book-2" id="pileBook2"></div>
+                                <div class="css-book-pile-item book-3" id="pileBook3"></div>
                             </div>
                         </div>
                         <div class="book-info-wrapper">
-                            <span class="badge" id="resultBookGenre">Self-Development</span>
-                            <h1 class="book-title" id="resultBookTitle">Atomic Habits</h1>
-                            <h3 class="book-author" id="resultBookAuthor">by James Clear</h3>
-                            <p class="book-summary" id="resultBookSummary">
-                                Atomic Habits is a comprehensive guide to breaking bad behaviors and adopting good ones in four simple steps, showing you how small daily changes compound into massive, life-changing results.
+                            <span class="badge" id="resultShelfTaste">Shelf Taste Profile</span>
+                            <h1 class="book-title" id="resultShelfTitle">Taste Analysis</h1>
+                            <p class="book-summary" id="resultShelfSummary">
+                                Scanned taste analysis goes here...
                             </p>
+                            
+                            <!-- Detected Books List -->
+                            <div class="detected-books-section">
+                                <h3><i class="fa-solid fa-list-check"></i> Scanned Titles:</h3>
+                                <ul class="detected-books-list" id="detectedBooksList">
+                                    <li>Book 1 by Author</li>
+                                    <li>Book 2 by Author</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -138,18 +146,29 @@
                 <!-- Recommendations Section -->
                 <h2 class="recommendations-heading"><i class="fa-solid fa-star"></i> AI Recommendations</h2>
                 <div class="recommendations-grid" id="recommendationsContainer">
-                    <!-- Recommendation Card 1 (Template) -->
+                    <!-- Recommendation Card 1 (Will be dynamically generated) -->
                     <div class="rec-card card">
-                        <div class="rec-header">
-                            <span class="rec-number">01</span>
-                            <div>
-                                <h3 class="rec-title">The Power of Habit</h3>
-                                <p class="rec-author">by Charles Duhigg</p>
+                        <div class="rec-card-inner">
+                            <div class="dynamic-cover-wrapper mini-cover">
+                                <div class="css-book">
+                                    <div class="book-spine"></div>
+                                    <div class="book-cover">
+                                        <div class="cover-design">
+                                            <div class="cover-accent-line"></div>
+                                            <h4>atomic habits</h4>
+                                            <p>James Clear</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="rec-reason">
-                            <i class="fa-solid fa-quote-left quote-icon"></i>
-                            <p>This book is highly relevant because it delves deep into the neurological loop of cues, routines, and rewards that drive all human habits, complementing James Clear's highly practical framework with scientific case studies.</p>
+                            <div class="rec-info">
+                                <h3 class="rec-title">Atomic Habits</h3>
+                                <p class="rec-author">by James Clear</p>
+                                <div class="rec-reason">
+                                    <i class="fa-solid fa-quote-left quote-icon"></i>
+                                    <p>Reason goes here...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -208,7 +227,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 SHELF-SCANNER | AI Book Discovery Engine. Built with FastAPI, Vanilla JS, and Gemini 3.6.</p>
+        <p>&copy; 2026 SHELF-SCANNER | AI Bookshelf Discovery Engine. Built with FastAPI, Vanilla JS, and Gemini 3.6.</p>
     </footer>
 
     <script src="app.js"></script>
