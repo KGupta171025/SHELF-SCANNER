@@ -1168,3 +1168,246 @@ footer {
     0%, 100% { top: 5%; }
     50% { top: 95%; }
 }
+
+/* =======================================================
+   MY DIGITAL BOOKSHELF & IMPORT MODAL EXTENSION STYLES
+   ======================================================= */
+
+.library-section {
+    grid-column: 1 / -1; /* Make library row span across both layout columns */
+    padding: 2.25rem;
+    margin-top: 1.5rem;
+}
+
+.library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.library-title-group h2 {
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.library-title-group h2 i {
+    color: var(--accent-primary);
+}
+
+.library-title-group p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.library-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.search-box input {
+    padding: 0.6rem 1rem 0.6rem 2.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    outline: none;
+    font-size: 0.85rem;
+    width: 240px;
+    transition: border-color var(--transition-speed);
+}
+
+.search-box input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(125, 95, 255, 0.15);
+}
+
+.genre-filter {
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition-speed);
+}
+
+.genre-filter:focus {
+    border-color: var(--accent-primary);
+}
+
+/* Virtual Wooden Bookshelf Styling */
+.bookshelf-container {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 2rem 1.5rem;
+    overflow: hidden;
+}
+
+.virtual-shelf {
+    display: flex;
+    flex-direction: column;
+    gap: 4.5rem; /* Gap between shelves */
+    padding-bottom: 2rem;
+}
+
+.shelf-row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+    padding-bottom: 0.5rem;
+    border-bottom: 14px solid #5a3c20; /* Realistic wood shelf */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+    position: relative;
+    min-height: 150px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-left: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.shelf-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.shelf-row::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+/* Book items on the shelf */
+.shelf-book-item {
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), z-index var(--transition-speed);
+    flex-shrink: 0;
+    transform-origin: bottom center;
+}
+
+.shelf-book-item .css-book {
+    width: 80px;
+    height: 115px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5);
+    transform: rotateY(-18deg) rotateX(4deg);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.shelf-book-item .book-spine {
+    width: 12px;
+}
+
+.shelf-book-item .book-page {
+    width: 76px;
+    height: 111px;
+}
+
+.shelf-book-item .cover-design {
+    padding: 0.35rem;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.shelf-book-item .cover-accent-line {
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    height: 1px;
+}
+
+.shelf-book-item .cover-design h4 {
+    font-size: 0.52rem;
+    font-weight: 700;
+    -webkit-line-clamp: 4;
+}
+
+.shelf-book-item .cover-design p {
+    font-size: 0.38rem;
+    margin-top: 0.15rem;
+}
+
+.shelf-book-item:hover {
+    transform: translateY(-10px) scale(1.08);
+    z-index: 100;
+}
+
+.shelf-book-item:hover .css-book {
+    transform: rotateY(0deg) rotateX(0deg);
+    box-shadow: 0 10px 25px rgba(125, 95, 255, 0.25);
+}
+
+/* Empty shelf placeholder */
+.empty-shelf-message {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    padding: 3rem 0;
+    width: 100%;
+}
+
+/* Split Import Modal controls */
+textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+    transition: border-color var(--transition-speed);
+}
+
+textarea:focus {
+    border-color: var(--accent-primary);
+}
+
+.import-intro {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 1.25rem;
+}
+
+.form-actions-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.25rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.right-actions {
+    display: flex;
+    gap: 1rem;
+}
+

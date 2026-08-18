@@ -225,6 +225,60 @@
             </div>
         </div>
     </div>
+    <!-- New Section: Permanent Virtual Bookshelf Library -->
+    <section class="library-section card">
+        <div class="library-header">
+            <div class="library-title-group">
+                <h2><i class="fa-solid fa-book-bookmark"></i> My Digital Bookshelf</h2>
+                <p>Browse through all the books you've scanned and discovered.</p>
+            </div>
+            <div class="library-actions">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="librarySearchInput" placeholder="Search by title or author...">
+                </div>
+                <select id="libraryGenreFilter" class="genre-filter">
+                    <option value="all">All Genres</option>
+                </select>
+                <button id="importLibraryBtn" class="btn btn-icon">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Import Library
+                </button>
+            </div>
+        </div>
+        
+        <div class="bookshelf-container">
+            <!-- Wooden/Glass Shelves visual container -->
+            <div class="virtual-shelf" id="virtualShelfContainer">
+                <!-- Books will be populated here as horizontal shelves -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Import Library Modal -->
+    <div id="importModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-cloud-arrow-down"></i> Import Book Library</h2>
+                <span class="close-modal" id="closeImportModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="import-intro">Simulate importing your Goodreads or personal collection. Paste book titles (one per line) or load our curated sample library instantly.</p>
+                
+                <div class="form-group">
+                    <label for="importPastedTitles">Paste Books (Format: Title - Author)</label>
+                    <textarea id="importPastedTitles" rows="6" placeholder="e.g.&#10;Sapiens - Yuval Noah Harari&#10;Zero to One - Peter Thiel&#10;Dune - Frank Herbert"></textarea>
+                </div>
+
+                <div class="form-actions-split">
+                    <button id="loadSampleLibraryBtn" class="btn btn-secondary"><i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Goodreads</button>
+                    <div class="right-actions">
+                        <button id="cancelImport" class="btn btn-secondary">Cancel</button>
+                        <button id="saveImportBtn" class="btn btn-accent">Import Books</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2026 SHELF-SCANNER | AI Bookshelf Discovery Engine. Built with FastAPI, Vanilla JS, and Gemini 3.6.</p>

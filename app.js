@@ -46,7 +46,8 @@ const state = {
     activeTab: 'uploadTab',
     selectedImageBase64: null,   // Data URL of the selected image
     selectedImageFile: null,     // Raw file object for local multipart upload
-    stream: null                 // Camera stream object
+    stream: null,                // Camera stream object
+    library: []                  // Local persistent library catalog
 };
 
 // Run script only after the DOM is fully parsed and loaded
@@ -89,7 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const detectedBooksList = document.getElementById('detectedBooksList');
     const recommendationsContainer = document.getElementById('recommendationsContainer');
 
-    // 3. Initialize Settings from safeStorage
+    // Library Extensions DOM Elements
+    const virtualShelfContainer = document.getElementById('virtualShelfContainer');
+    const librarySearchInput = document.getElementById('librarySearchInput');
+    const libraryGenreFilter = document.getElementById('libraryGenreFilter');
+    const importLibraryBtn = document.getElementById('importLibraryBtn');
+    const importModal = document.getElementById('importModal');
+    const closeImportModal = document.getElementById('closeImportModal');
+    const cancelImport = document.getElementById('cancelImport');
+    const saveImportBtn = document.getElementById('saveImportBtn');
+    const loadSampleLibraryBtn = document.getElementById('loadSampleLibraryBtn');
+    const importPastedTitles = document.getElementById('importPastedTitles');
+
+    // 3. Initialize Settings & Library from safeStorage
     function initSettings() {
         const savedMode = safeStorage.getItem('shelf_scanner_mode');
         const savedKey = safeStorage.getItem('shelf_scanner_key');
@@ -109,6 +122,29 @@ document.addEventListener('DOMContentLoaded', () => {
             state.geminiApiKey = savedKey;
             if (apiKeyInput) apiKeyInput.value = savedKey;
         }
+
+        initLibrary();
+    }
+
+    function initLibrary() {
+        const savedLib = safeStorage.getItem('shelf_scanner_library');
+        if (savedLib) {
+            try {
+                state.library = JSON.parse(savedLib);
+            } catch (e) {
+                console.error("Failed to parse library:", e);
+                state.library = [];
+            }
+        } else {
+            state.library = [];
+        }
+        
+        renderShelf();
+        populateGenreFilter();
+    }
+
+    function saveLibrary() {
+        safeStorage.setItem('shelf_scanner_library', JSON.stringify(state.library));
     }
 
     // Run settings initialization on page load
@@ -279,10 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 7. File Selection & Drag-and-Drop
     if (dropZone && fileInput) {
-        // Trigger file selector on drop zone click
         dropZone.addEventListener('click', (e) => {
-            // CRITICAL FIX: Only trigger programmatic click if we didn't click the input/label directly.
-            // This prevents duplicate browser clicks which cancel the file dialogue.
             if (e.target !== fileInput && !e.target.closest('label')) {
                 fileInput.click();
             }
@@ -313,7 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFileSelect(file) {
-        console.log("handleFileSelect triggered. File:", file.name, "Type:", file.type, "Size:", file.size);
         if (!file.type.startsWith('image/')) {
             alert(`Selected file is not an image (detected type: ${file.type || 'unknown'}). Please upload an image file.`);
             return;
@@ -323,7 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const reader = new FileReader();
         reader.onload = (e) => {
-            console.log("FileReader load finished. Data URL length:", e.target.result.length);
             state.selectedImageBase64 = e.target.result;
             showPreview(e.target.result);
         };
@@ -335,32 +366,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showPreview(dataUrl) {
-        console.log("showPreview triggered. Checking targets...");
         const uploadTabEl = document.getElementById('uploadTab');
         const cameraTabEl = document.getElementById('cameraTab');
         const tabNavEl = document.querySelector('.tabs');
         
-        console.log("Elements found:", {
-            uploadTab: !!uploadTabEl,
-            cameraTab: !!cameraTabEl,
-            tabNav: !!tabNavEl,
-            imagePreview: !!imagePreview,
-            previewZone: !!previewZone
-        });
-
         if (uploadTabEl) uploadTabEl.style.display = 'none';
         if (cameraTabEl) cameraTabEl.style.display = 'none';
         if (tabNavEl) tabNavEl.style.display = 'none';
         
-        // Show Preview
-        if (imagePreview) {
-            imagePreview.src = dataUrl;
-            console.log("Set imagePreview src");
-        }
-        if (previewZone) {
-            previewZone.style.display = 'flex';
-            console.log("Set previewZone display: flex");
-        }
+        if (imagePreview) imagePreview.src = dataUrl;
+        if (previewZone) previewZone.style.display = 'flex';
     }
 
     // Reset scanner layout to capture/upload state
@@ -403,6 +418,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     resultData = await scanDirectly();
                 }
                 
+                // Add recognized books to local persistent database
+                if (resultData.scanned_books && resultData.scanned_books.length > 0) {
+                    resultData.scanned_books.forEach(scannedBook => {
+                        const exists = state.library.some(b => b.title.toLowerCase() === scannedBook.title.toLowerCase());
+                        if (!exists) {
+                            state.library.push({
+                                title: scannedBook.title,
+                                author: scannedBook.author,
+                                genre: scannedBook.genre,
+                                shelf_summary: resultData.shelf_summary,
+                                recommendations: resultData.recommendations
+                            });
+                        }
+                    });
+                    saveLibrary();
+                    renderShelf();
+                    populateGenreFilter();
+                }
+
                 renderResults(resultData);
                 
             } catch (err) {
@@ -593,6 +627,301 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (resultsContent) resultsContent.style.display = 'block';
+    }
+
+    // 10. My Digital Bookshelf Layout Renderer
+    function renderShelf() {
+        if (!virtualShelfContainer) return;
+        virtualShelfContainer.innerHTML = '';
+        
+        const searchQuery = librarySearchInput ? librarySearchInput.value.toLowerCase().trim() : '';
+        const selectedGenre = libraryGenreFilter ? libraryGenreFilter.value : 'all';
+        
+        const filteredBooks = state.library.filter(book => {
+            const matchesSearch = book.title.toLowerCase().includes(searchQuery) || 
+                                 book.author.toLowerCase().includes(searchQuery);
+            const matchesGenre = selectedGenre === 'all' || book.genre === selectedGenre;
+            return matchesSearch && matchesGenre;
+        });
+        
+        if (filteredBooks.length === 0) {
+            virtualShelfContainer.innerHTML = '<div class="empty-shelf-message"><i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>Your shelf is empty. Scan a bookshelf or click "Import Library" to add books.</div>';
+            return;
+        }
+        
+        // Group books into rows representing shelves of up to 6 books
+        const booksPerShelf = 6;
+        for (let i = 0; i < filteredBooks.length; i += booksPerShelf) {
+            const shelfBooks = filteredBooks.slice(i, i + booksPerShelf);
+            const shelfRow = document.createElement('div');
+            shelfRow.className = 'shelf-row';
+            
+            shelfBooks.forEach(book => {
+                const titleHue = Math.abs(hashCode(book.title)) % 360;
+                const bookItem = document.createElement('div');
+                bookItem.className = 'shelf-book-item';
+                bookItem.title = `${book.title} by ${book.author} (Click for details)`;
+                
+                bookItem.innerHTML = `
+                    <div class="css-book">
+                        <div class="book-spine" style="background: hsl(${titleHue}, 60%, 30%)"></div>
+                        <div class="book-page"></div>
+                        <div class="book-cover" style="background: linear-gradient(135deg, hsl(${titleHue}, 70%, 40%) 0%, hsl(${(titleHue + 40) % 360}, 75%, 20%) 100%)">
+                           <div class="cover-design">
+                               <div class="cover-accent-line"></div>
+                               <h4>${truncateText(book.title, 35)}</h4>
+                               <p>${truncateText(book.author, 18)}</p>
+                           </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Clicking a book displays its saved details and original recommendations
+                bookItem.addEventListener('click', () => {
+                    displayLibraryBookDetails(book);
+                });
+                
+                shelfRow.appendChild(bookItem);
+            });
+            
+            virtualShelfContainer.appendChild(shelfRow);
+        }
+    }
+
+    function displayLibraryBookDetails(book) {
+        if (resultsPlaceholder) resultsPlaceholder.style.display = 'none';
+        if (resultsLoading) resultsLoading.style.display = 'none';
+        
+        if (resultShelfSummary) {
+            resultShelfSummary.textContent = book.shelf_summary;
+        }
+        
+        if (detectedBooksList) {
+            detectedBooksList.innerHTML = '';
+            const li = document.createElement('li');
+            li.textContent = `${book.title} by ${book.author}`;
+            li.title = `${book.title} by ${book.author} (${book.genre || 'Unknown'})`;
+            detectedBooksList.appendChild(li);
+        }
+        
+        if (recommendationsContainer) {
+            recommendationsContainer.innerHTML = '';
+            if (book.recommendations && book.recommendations.length > 0) {
+                book.recommendations.forEach((rec, index) => {
+                    const titleHue = Math.abs(hashCode(rec.title)) % 360;
+                    const cardHtml = `
+                        <div class="rec-card card">
+                            <div class="rec-card-inner">
+                                <div class="dynamic-cover-wrapper mini-cover">
+                                    <div class="css-book" id="recCover_${index}">
+                                        <div class="book-spine" style="background: hsl(${titleHue}, 60%, 35%)"></div>
+                                        <div class="book-page"></div>
+                                        <div class="book-cover" style="background: linear-gradient(135deg, hsl(${titleHue}, 70%, 45%) 0%, hsl(${(titleHue + 40) % 360}, 75%, 25%) 100%)">
+                                            <div class="cover-design">
+                                                <div class="cover-accent-line"></div>
+                                                <h4>${truncateText(rec.title, 40)}</h4>
+                                                <p>${truncateText(rec.author, 20)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rec-info">
+                                    <h3 class="rec-title">${rec.title}</h3>
+                                    <p class="rec-author">by ${rec.author}</p>
+                                    <div class="rec-reason">
+                                        <i class="fa-solid fa-quote-left quote-icon"></i>
+                                        <p>${rec.reason}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    recommendationsContainer.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            }
+        }
+        
+        if (resultsContent) resultsContent.style.display = 'block';
+        
+        // Scroll to details section smoothly
+        const resultsEl = document.querySelector('.results-section');
+        if (resultsEl) {
+            resultsEl.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function populateGenreFilter() {
+        if (!libraryGenreFilter) return;
+        const currentSelection = libraryGenreFilter.value;
+        
+        libraryGenreFilter.innerHTML = '<option value="all">All Genres</option>';
+        
+        const genres = new Set();
+        state.library.forEach(book => {
+            if (book.genre) genres.add(book.genre);
+        });
+        
+        genres.forEach(genre => {
+            const opt = document.createElement('option');
+            opt.value = genre;
+            opt.textContent = genre;
+            libraryGenreFilter.appendChild(opt);
+        });
+        
+        if (Array.from(libraryGenreFilter.options).some(o => o.value === currentSelection)) {
+            libraryGenreFilter.value = currentSelection;
+        }
+    }
+
+    // 11. Search and Filter Event Listeners
+    if (librarySearchInput) {
+        librarySearchInput.addEventListener('input', renderShelf);
+    }
+    if (libraryGenreFilter) {
+        libraryGenreFilter.addEventListener('change', renderShelf);
+    }
+
+    // 12. Import Goodreads Library Modal Controls
+    if (importLibraryBtn) {
+        importLibraryBtn.addEventListener('click', () => {
+            if (importModal) importModal.style.display = 'flex';
+        });
+    }
+
+    const hideImportModal = () => { 
+        if (importModal) importModal.style.display = 'none'; 
+    };
+
+    if (closeImportModal) closeImportModal.addEventListener('click', hideImportModal);
+    if (cancelImport) cancelImport.addEventListener('click', hideImportModal);
+
+    window.addEventListener('click', (e) => {
+        if (e.target === importModal) hideImportModal();
+    });
+
+    // Populate Sample Library (Goodreads Sim)
+    if (loadSampleLibraryBtn) {
+        loadSampleLibraryBtn.addEventListener('click', () => {
+            const samples = [
+                {
+                    title: "Sapiens: A Brief History of Humankind",
+                    author: "Yuval Noah Harari",
+                    genre: "History",
+                    shelf_summary: "You are fascinated by big-picture historical narratives, human evolution, anthropology, and how social structures shaped civilization.",
+                    recommendations: [
+                        { title: "Guns, Germs, and Steel", author: "Jared Diamond", reason: "Explores the environmental and geographic factors that allowed some societies to succeed and dominate." },
+                        { title: "Homo Deus", author: "Yuval Noah Harari", reason: "The sequel to Sapiens, examining the future of humanity and our transition into godlike entities." },
+                        { title: "The Silk Roads", author: "Peter Frankopan", reason: "A major reassessment of world history, focusing on the region where East meets West." }
+                    ]
+                },
+                {
+                    title: "Zero to One",
+                    author: "Peter Thiel",
+                    genre: "Business",
+                    shelf_summary: "Your taste features entrepreneurship, technology, contrarian strategy, and building innovative systems in startups.",
+                    recommendations: [
+                        { title: "The Lean Startup", author: "Eric Ries", reason: "Introduces the validated learning and rapid experimentation cycle for launching products." },
+                        { title: "Hard Things About Hard Things", author: "Ben Horowitz", reason: "Provides practical, raw advice on navigating the brutal challenges of leading startups." },
+                        { title: "High Output Management", author: "Andrew Grove", reason: "The legendary management guide for building and scaling high-efficiency team output." }
+                    ]
+                },
+                {
+                    title: "Dune",
+                    author: "Frank Herbert",
+                    genre: "Sci-Fi",
+                    shelf_summary: "You enjoy rich, immersive worldbuilding, epic space opera sagas, ecology, political intrigue, and philosophical sci-fi.",
+                    recommendations: [
+                        { title: "Foundation", author: "Isaac Asimov", reason: "A grand epic detailing the fall and rebirth of a galactic empire using mathematical psychohistory." },
+                        { title: "Hyperion", author: "Dan Simmons", reason: "A complex, multi-perspective sci-fi masterpiece weaving time travel, religion, and galactic war." },
+                        { title: "The Left Hand of Darkness", author: "Ursula K. Le Guin", reason: "A landmark work of science fiction exploring social structures, gender, and diplomacy." }
+                    ]
+                },
+                {
+                    title: "Atomic Habits",
+                    author: "James Clear",
+                    genre: "Self-Help",
+                    shelf_summary: "You focus on personal growth, productivity systems, habit formation, behavioral psychology, and self-improvement.",
+                    recommendations: [
+                        { title: "The Power of Habit", author: "Charles Duhigg", reason: "Explores the scientific loop of cue, routine, and reward that defines human behavior." },
+                        { title: "Deep Work", author: "Cal Newport", reason: "A guide on cultivating cognitive focus to succeed in a distracted, hyper-connected world." },
+                        { title: "Tiny Habits", author: "BJ Fogg", reason: "Presents the behavioral psychology method of starting extremely small to construct massive changes." }
+                    ]
+                },
+                {
+                    title: "Thinking, Fast and Slow",
+                    author: "Daniel Kahneman",
+                    genre: "Psychology",
+                    shelf_summary: "You study cognitive biases, decision-making systems, behavioral economics, and how humans make judgements.",
+                    recommendations: [
+                        { title: "Predictably Irrational", author: "Dan Ariely", reason: "Shows how human decisions are systematically and predictably irrational." },
+                        { title: "Nudge", author: "Richard Thaler & Cass Sunstein", reason: "Explores how choice architecture can gently direct humans to make better life decisions." },
+                        { title: "Influence: The Psychology of Persuasion", author: "Robert Cialdini", reason: "The classic study on the six universal psychological principles of persuasion." }
+                    ]
+                }
+            ];
+            
+            samples.forEach(sample => {
+                const exists = state.library.some(b => b.title.toLowerCase() === sample.title.toLowerCase());
+                if (!exists) {
+                    state.library.push(sample);
+                }
+            });
+            
+            saveLibrary();
+            renderShelf();
+            populateGenreFilter();
+            hideImportModal();
+        });
+    }
+
+    // Save Custom Pasted Titles
+    if (saveImportBtn && importPastedTitles) {
+        saveImportBtn.addEventListener('click', () => {
+            const text = importPastedTitles.value.trim();
+            if (!text) {
+                alert("Please paste some book titles first.");
+                return;
+            }
+            
+            const lines = text.split('\n');
+            let importedCount = 0;
+            
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                
+                let title = line.trim();
+                let author = "Unknown Author";
+                
+                if (line.includes('-')) {
+                    const parts = line.split('-');
+                    title = parts[0].trim();
+                    author = parts[1].trim();
+                }
+                
+                const exists = state.library.some(b => b.title.toLowerCase() === title.toLowerCase());
+                if (!exists) {
+                    state.library.push({
+                        title: title,
+                        author: author,
+                        genre: "Imported",
+                        shelf_summary: `Imported book profile. Select Scan Bookshelf to discover fresh insights for your library.`,
+                        recommendations: [
+                            { title: `Discoveries similar to ${title}`, author: author, reason: `This recommendation is customized for readers of ${title} by ${author}.` }
+                        ]
+                    });
+                    importedCount++;
+                }
+            });
+            
+            if (importedCount > 0) {
+                saveLibrary();
+                renderShelf();
+                populateGenreFilter();
+                importPastedTitles.value = '';
+            }
+            
+            hideImportModal();
+        });
     }
 
     // Helper: Truncate cover title/author
