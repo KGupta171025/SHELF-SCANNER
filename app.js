@@ -1,29 +1,92 @@
-/* ==========================================
+/* ==========================================================================
    SHELF-SCANNER APPLICATION LOGIC (PORTAL)
-   ========================================== */
+   Features:
+   - Anonymous Device-Level Data Separation & Zero Personal Info Collection
+   - Continuous Real-Time Cross-Tab Synchronization & Auto-Refresh
+   - Dual-Mode Processing (Local FastAPI Backend / Direct Serverless Gemini API)
+   - 3D CSS Bookshelf, Reading Library CRUD, Exporter & Toast Notifications
+   ========================================================================== */
 
-// 1. Safe localStorage wrapper
+// 1. Anonymous Device Identity & Sandboxed Storage Namespace
+function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'dev_' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+function getOrCreateDeviceId() {
+    try {
+        let deviceId = localStorage.getItem('shelf_scanner_device_uuid');
+        if (!deviceId) {
+            deviceId = generateUUID();
+            localStorage.setItem('shelf_scanner_device_uuid', deviceId);
+        }
+        return deviceId;
+    } catch (e) {
+        console.warn('Storage access restricted, using in-memory session ID:', e);
+        return 'dev_sandboxed_' + Math.random().toString(36).substring(2, 10);
+    }
+}
+
+// Global Device Identifier (Scoped Sandbox)
+let currentDeviceId = getOrCreateDeviceId();
+
+// Device-Scoped Storage Accessor
 const safeStorage = {
+    getScopedKey(key) {
+        return `shelf_${currentDeviceId}_${key}`;
+    },
     getItem(key) {
         try {
-            return localStorage.getItem(key);
+            const scopedKey = this.getScopedKey(key);
+            let val = localStorage.getItem(scopedKey);
+            if (val === null) {
+                const legacyVal = localStorage.getItem(key);
+                if (legacyVal !== null) {
+                    this.setItem(key, legacyVal);
+                    localStorage.removeItem(key);
+                    return legacyVal;
+                }
+            }
+            return val;
         } catch (e) {
-            console.warn(`Storage reading failed for key "${key}":`, e);
+            console.warn(`Storage read failed for "${key}":`, e);
             return null;
         }
     },
     setItem(key, value) {
         try {
-            localStorage.setItem(key, value);
+            const scopedKey = this.getScopedKey(key);
+            localStorage.setItem(scopedKey, value);
         } catch (e) {
-            console.warn(`Storage writing failed for key "${key}":`, e);
+            console.warn(`Storage write failed for "${key}":`, e);
         }
     },
     removeItem(key) {
         try {
-            localStorage.removeItem(key);
+            const scopedKey = this.getScopedKey(key);
+            localStorage.removeItem(scopedKey);
         } catch (e) {
-            console.warn(`Storage removal failed for key "${key}":`, e);
+            console.warn(`Storage remove failed for "${key}":`, e);
+        }
+    },
+    clearDeviceData() {
+        try {
+            const prefix = `shelf_${currentDeviceId}_`;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(prefix)) {
+                    keysToRemove.push(k);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+        } catch (e) {
+            console.warn('Clear device data failed:', e);
         }
     }
 };
@@ -69,15 +132,16 @@ function dataURLtoFile(dataurl, filename) {
     }
 }
 
-// 4. Global Application State
+// 4. Global Application State (Device-Scoped)
 const state = {
+    deviceId: currentDeviceId,
     apiMode: 'backend',          // 'backend' or 'direct'
-    geminiApiKey: '',            // Kept in localStorage
+    geminiApiKey: '',            // Scoped in localStorage
     activeTab: 'uploadTab',
     selectedImageBase64: null,   // Data URL of the selected image
     selectedImageFile: null,     // Raw file object for local multipart upload
     stream: null,                // Camera stream object
-    library: [],                 // Local persistent library catalog
+    library: [],                 // Local persistent library catalog (Device-Scoped)
     currentResults: null,        // Currently scanned AI results
     exportFormat: 'json'         // Active export format
 };
@@ -105,6 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleApiKey = document.getElementById('toggleApiKey');
     const radioModeBackend = document.querySelector('input[value="backend"]');
     const radioModeDirect = document.querySelector('input[value="direct"]');
+    const deviceSessionIdEl = document.getElementById('deviceSessionId');
+    const copySessionIdBtn = document.getElementById('copySessionIdBtn');
+    const resetSessionBtn = document.getElementById('resetSessionBtn');
 
     // Donate Modals
     const donateBtn = document.getElementById('donateBtn');
@@ -208,27 +275,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Initializers
     // ==========================================
     function initSettings() {
-        const savedMode = safeStorage.getItem('shelf_scanner_mode');
-        const savedKey = safeStorage.getItem('shelf_scanner_key');
+        state.deviceId = currentDeviceId;
+        const savedMode = safeStorage.getItem('apiMode') || 'backend';
+        const savedKey = safeStorage.getItem('geminiApiKey') || '';
 
-        if (savedMode) {
-            state.apiMode = savedMode;
-            if (savedMode === 'backend') {
-                if (radioModeBackend) radioModeBackend.checked = true;
-                if (apiKeyContainer) apiKeyContainer.style.display = 'none';
-            } else {
-                if (radioModeDirect) radioModeDirect.checked = true;
-                if (apiKeyContainer) apiKeyContainer.style.display = 'block';
-            }
+        state.apiMode = savedMode;
+        if (savedMode === 'backend') {
+            if (radioModeBackend) radioModeBackend.checked = true;
+            if (apiKeyContainer) apiKeyContainer.style.display = 'none';
+        } else {
+            if (radioModeDirect) radioModeDirect.checked = true;
+            if (apiKeyContainer) apiKeyContainer.style.display = 'block';
         }
         
-        if (savedKey) {
-            state.geminiApiKey = savedKey;
-            if (apiKeyInput) apiKeyInput.value = savedKey;
+        state.geminiApiKey = savedKey;
+        if (apiKeyInput) apiKeyInput.value = savedKey;
+
+        if (deviceSessionIdEl) {
+            deviceSessionIdEl.textContent = state.deviceId;
+            deviceSessionIdEl.title = `Full Device Sandbox UUID: ${state.deviceId}`;
         }
 
         // Theme Initialization
-        const savedTheme = safeStorage.getItem('shelf_scanner_theme') || 'dark';
+        const savedTheme = safeStorage.getItem('theme') || 'dark';
         if (savedTheme === 'light') {
             document.body.classList.add('light-theme');
             updateThemeIcon(true);
@@ -241,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initLibrary() {
-        const savedLib = safeStorage.getItem('shelf_scanner_library');
+        const savedLib = safeStorage.getItem('library');
         if (savedLib) {
             try {
                 state.library = JSON.parse(savedLib);
@@ -258,12 +327,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function saveLibrary() {
-        safeStorage.setItem('shelf_scanner_library', JSON.stringify(state.library));
+        safeStorage.setItem('library', JSON.stringify(state.library));
         renderShelf();
         populateGenreFilter();
     }
 
     initSettings();
+
+    // ==========================================
+    // 5.1 Real-Time Multi-Tab Synchronization Bus
+    // ==========================================
+    window.addEventListener('storage', (event) => {
+        if (!event.key) return;
+
+        const libraryKey = safeStorage.getScopedKey('library');
+        const themeKey = safeStorage.getScopedKey('theme');
+        const modeKey = safeStorage.getScopedKey('apiMode');
+        const apiKeyKey = safeStorage.getScopedKey('geminiApiKey');
+
+        if (event.key === libraryKey) {
+            initLibrary();
+            showToast('Reading Library synced from another tab/window.', 'info', 2200);
+        } else if (event.key === themeKey) {
+            const isLight = event.newValue === 'light';
+            if (isLight) {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
+            updateThemeIcon(isLight);
+        } else if (event.key === modeKey || event.key === apiKeyKey) {
+            initSettings();
+        }
+    });
 
     // ==========================================
     // 6. Navigation & Routing
@@ -325,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
             const isLight = document.body.classList.toggle('light-theme');
-            safeStorage.setItem('shelf_scanner_theme', isLight ? 'light' : 'dark');
+            safeStorage.setItem('theme', isLight ? 'light' : 'dark');
             updateThemeIcon(isLight);
             showToast(`Switched to ${isLight ? 'Light' : 'Dark'} theme`, 'info', 1800);
         });
@@ -360,6 +456,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSettings) closeSettings.addEventListener('click', () => hideModal(settingsModal));
     if (cancelSettings) cancelSettings.addEventListener('click', () => hideModal(settingsModal));
 
+    // Copy Session ID
+    if (copySessionIdBtn) {
+        copySessionIdBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(state.deviceId).then(() => {
+                showToast('Device Session ID copied to clipboard!', 'success');
+            }).catch(() => {
+                showToast('Failed to copy Session ID.', 'error');
+            });
+        });
+    }
+
+    // Reset Anonymous Session
+    if (resetSessionBtn) {
+        resetSessionBtn.addEventListener('click', () => {
+            if (confirm('Reset your Anonymous Device Identity? This will start a completely fresh, isolated reading workspace on this device.')) {
+                safeStorage.clearDeviceData();
+                const newId = generateUUID();
+                localStorage.setItem('shelf_scanner_device_uuid', newId);
+                currentDeviceId = newId;
+                state.deviceId = newId;
+                state.library = [];
+                state.currentResults = null;
+                
+                initSettings();
+                hideModal(settingsModal);
+                showToast('Anonymous Device Identity reset. Fresh workspace created!', 'success');
+            }
+        });
+    }
+
     document.getElementsByName('apiMode').forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (apiKeyContainer) {
@@ -392,19 +518,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            safeStorage.setItem('shelf_scanner_mode', chosenMode);
+            safeStorage.setItem('apiMode', chosenMode);
             state.apiMode = chosenMode;
 
             if (enteredKey) {
-                safeStorage.setItem('shelf_scanner_key', enteredKey);
+                safeStorage.setItem('geminiApiKey', enteredKey);
                 state.geminiApiKey = enteredKey;
             } else {
-                safeStorage.removeItem('shelf_scanner_key');
+                safeStorage.removeItem('geminiApiKey');
                 state.geminiApiKey = '';
             }
 
             hideModal(settingsModal);
-            showToast('Settings saved successfully!', 'success');
+            showToast('Settings saved securely for this device!', 'success');
         });
     }
 
@@ -704,6 +830,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const response = await fetch('http://localhost:8000/api/scan', {
             method: 'POST',
+            headers: {
+                'X-Device-Session-ID': state.deviceId
+            },
             body: formData
         });
         

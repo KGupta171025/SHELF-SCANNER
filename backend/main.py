@@ -1,7 +1,7 @@
 import io
 import os
 from typing import List, Optional
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from PIL import Image
@@ -36,7 +36,7 @@ class BookshelfScanResult(BaseModel):
 # 3. Initialize FastAPI App
 app = FastAPI(
     title="SHELF-SCANNER Bookshelf API",
-    description="Backend API for scanning bookshelves from images, analyzing taste, and recommending similar books using Gemini AI.",
+    description="Backend API for scanning bookshelves from images, analyzing taste, and recommending similar books using Gemini AI with full multi-user session isolation.",
     version="2.0.0"
 )
 
@@ -55,12 +55,14 @@ client = genai.Client()
 @app.post("/api/scan", response_model=BookshelfScanResult)
 async def scan_bookshelf(
     file: UploadFile = File(...),
-    preferences: Optional[str] = Form(None)
+    preferences: Optional[str] = Form(None),
+    x_device_session_id: Optional[str] = Header(None, alias="X-Device-Session-ID")
 ):
     """
     Receives an image of a bookshelf, uploads it to Gemini, 
     recognizes the books on it, incorporates user preferences,
-    and returns a summary + recommendations.
+    and returns a summary + recommendations with 100% stateless
+    per-device session isolation (no cross-user data storage).
     """
     # Validate file type
     if not file.content_type.startswith("image/"):

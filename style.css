@@ -1915,6 +1915,60 @@ body.light-theme .input-with-icon input {
     line-height: 1.4;
 }
 
+/* Anonymous Device Isolation Card */
+.session-isolation-group {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.15rem;
+    margin-top: 0.25rem;
+}
+
+.session-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+body.light-theme .session-card {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.session-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.session-id-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.session-id-display {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--accent-primary);
+    background: rgba(125, 95, 255, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    user-select: all;
+    font-weight: 600;
+}
+
+.session-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .form-actions {
     display: flex;
     justify-content: flex-end;

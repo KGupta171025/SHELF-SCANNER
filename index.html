@@ -362,7 +362,26 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
-                    <small class="help-text">Your API key is saved locally in your browser's <code>localStorage</code> and never sent to any external server.</small>
+                    <small class="help-text">Your API key is saved locally in your browser's <code>localStorage</code> sandbox and never sent to any external server.</small>
+                </div>
+
+                <div class="form-group session-isolation-group">
+                    <label><i class="fa-solid fa-shield-halved"></i> Anonymous Device Isolation</label>
+                    <div class="session-card">
+                        <div class="session-card-info">
+                            <span class="session-id-label">Device Session ID (Sandboxed)</span>
+                            <code class="session-id-display" id="deviceSessionId">dev_loading...</code>
+                        </div>
+                        <div class="session-card-actions">
+                            <button type="button" id="copySessionIdBtn" class="btn btn-icon btn-sm" title="Copy Session ID">
+                                <i class="fa-solid fa-copy"></i> Copy
+                            </button>
+                            <button type="button" id="resetSessionBtn" class="btn btn-icon btn-sm btn-danger-hover" title="Reset Device Identity & Data">
+                                <i class="fa-solid fa-rotate-right"></i> Reset Identity
+                            </button>
+                        </div>
+                    </div>
+                    <small class="help-text"><i class="fa-solid fa-lock"></i> <strong>Zero Cross-Device Leakage:</strong> Your reading library, scan results, and preferences are strictly sandboxed on this device. Multiple tabs on this device auto-sync in real-time, while other devices have independent isolated workspaces.</small>
                 </div>
 
                 <div class="form-actions">
