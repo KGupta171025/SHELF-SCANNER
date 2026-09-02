@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShelfScanner | AI-Powered Bookshelf Scanner & Recommender</title>
+    <!-- Primary Domain Canonical & Auto-Redirect from GitHub Pages -->
+    <link rel="canonical" href="https://shelf-scanner.hg497kg.workers.dev/">
+    <script>
+        // Automatically redirect any traffic hitting GitHub Pages to the main Cloudflare Workers deployment
+        if (window.location.hostname.includes('github.io')) {
+            window.location.replace('https://shelf-scanner.hg497kg.workers.dev/' + window.location.search + window.location.hash);
+        }
+    </script>
     <!-- Premium Google Fonts: Outfit for Headings, Inter for Body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
