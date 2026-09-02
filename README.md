@@ -1,17 +1,19 @@
 # 📚 SHELF-SCANNER: AI-Powered Bookshelf Analyzer & Discovery Engine
 
-[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blue?style=for-the-badge&logo=github)](https://kgupta171025.github.io/SHELF-SCANNER/)
+[![Cloudflare Workers](https://img.shields.io/badge/Main%20Live%20Site-Cloudflare%20Workers-F38020?style=for-the-badge&logo=cloudflare)](https://shelf-scanner.hg497kg.workers.dev/)
+[![GitHub Pages](https://img.shields.io/badge/Mirror%20(Auto--Redirect)-GitHub%20Pages-blue?style=for-the-badge&logo=github)](https://kgupta171025.github.io/SHELF-SCANNER/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-**Live Site:** [https://kgupta171025.github.io/SHELF-SCANNER/](https://kgupta171025.github.io/SHELF-SCANNER/)  
+**🌟 Main Live Application:** [https://shelf-scanner.hg497kg.workers.dev/](https://shelf-scanner.hg497kg.workers.dev/)  
+**🔄 GitHub Pages (Auto-Redirects to Main):** [https://kgupta171025.github.io/SHELF-SCANNER/](https://kgupta171025.github.io/SHELF-SCANNER/)  
 **GitHub Repository:** [https://github.com/KGupta171025/SHELF-SCANNER](https://github.com/KGupta171025/SHELF-SCANNER)
 
 **SHELF-SCANNER** is an interactive web application that scans entire physical bookshelves from a single photograph, recognizes multiple book titles and authors, builds your personal reading taste profile, and generates personalized book recommendations using Google's state-of-the-art **Gemini Vision** AI.
 
 Designed for both **local development** and **production serverless hosting**, it runs seamlessly in two modes:
 1. **Local Mode:** Connects to a local Python FastAPI backend server (`http://localhost:8000`).
-2. **Serverless Mode:** Runs 100% in-browser using direct Gemini REST APIs—zero backend hosting required, perfect for **GitHub Pages**.
+2. **Serverless Mode:** Runs 100% in-browser using direct Gemini REST APIs on Cloudflare Workers / GitHub Pages.
 
 ---
 
