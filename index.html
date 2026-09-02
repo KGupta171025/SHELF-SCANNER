@@ -35,6 +35,9 @@
                 <button id="themeToggleBtn" class="btn btn-theme" title="Toggle Light/Dark Theme">
                     <i class="fa-solid fa-moon theme-icon"></i>
                 </button>
+                <button id="settingsBtn" class="btn btn-icon" title="Settings & API Configuration">
+                    <i class="fa-solid fa-gear"></i> <span>Settings</span>
+                </button>
                 <button id="contactBtn" class="btn btn-contact">
                     <i class="fa-solid fa-envelope"></i> <span>Contact</span>
                 </button>
@@ -72,11 +75,17 @@
             <!-- PAGE 1: Home Landing Page -->
             <div id="homePage" class="page-view active">
                 <section class="hero-section">
-                    <h1 class="hero-title">AI bookshelf scanner and book recommender</h1>
-                    <p class="hero-subtitle">Find the perfect book for you.</p>
-                    <button class="btn btn-primary btn-lg cta-scan-trigger">
-                        <i class="fa-solid fa-camera"></i> Start Scanning
-                    </button>
+                    <div class="badge hero-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Powered by Gemini AI</div>
+                    <h1 class="hero-title">AI Bookshelf Scanner & Book Discovery Engine</h1>
+                    <p class="hero-subtitle">Snap a picture of any bookshelf, decode your reading taste, and find your next favorite reads in seconds.</p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-lg cta-scan-trigger">
+                            <i class="fa-solid fa-camera"></i> Start Scanning
+                        </button>
+                        <button class="btn btn-secondary btn-lg" id="homeDemoShelfBtn">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Try Demo Shelf
+                        </button>
+                    </div>
                 </section>
 
                 <section class="promo-card card cta-scan-trigger">
@@ -84,9 +93,9 @@
                         <i class="fa-solid fa-book-open promo-icon"></i>
                     </div>
                     <div class="promo-content">
-                        <h3>AI Book Discovery</h3>
-                        <p>Take a photo of an entire bookshelf at stores, the library, or a friend's house, and we'll help you figure out which ones you'll like!</p>
-                        <span class="promo-link">Start scanning <i class="fa-solid fa-chevron-right"></i></span>
+                        <h3>Instant Multimodal Discovery</h3>
+                        <p>Take a photo of a shelf at a bookstore, library, or friend's house. Our AI identifies every visible spine, builds a taste profile, and curates personalized recommendations tailored to you.</p>
+                        <span class="promo-link">Start scanning now <i class="fa-solid fa-chevron-right"></i></span>
                     </div>
                 </section>
 
@@ -95,18 +104,18 @@
                     <div class="steps-grid">
                         <div class="step-card card">
                             <div class="step-num">1</div>
-                            <h3>Upload Photo</h3>
-                            <p>Take a photo of an entire bookshelf and our AI will identify each book.</p>
+                            <h3>Upload or Snap Photo</h3>
+                            <p>Capture a live photo using your camera or upload any bookshelf picture.</p>
                         </div>
                         <div class="step-card card">
                             <div class="step-num">2</div>
-                            <h3>Set Preferences</h3>
-                            <p>Tell us about your reading interests and preferences to improve recommendations.</p>
+                            <h3>AI Vision & Analysis</h3>
+                            <p>Gemini Vision extracts visible titles, authors, and categorizes genres automatically.</p>
                         </div>
                         <div class="step-card card">
                             <div class="step-num">3</div>
-                            <h3>Find Matching Books</h3>
-                            <p>Discover which books best match your taste with our AI-powered recommendations.</p>
+                            <h3>Personalized Curation</h3>
+                            <p>Get instant book recommendations with AI rationale and save them straight to your library.</p>
                         </div>
                     </div>
                 </section>
@@ -115,9 +124,9 @@
                     <div class="cta-bottom-icon">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
-                    <h2>Start Using ShelfScanner Today</h2>
-                    <p>Never miss a great book again. Our app helps you quickly find books that match your unique reading preferences even in a crowded bookshelf.</p>
-                    <button class="btn btn-primary cta-scan-trigger">Get Started Now</button>
+                    <h2>Start Building Your Smart Library</h2>
+                    <p>Never lose track of great book recommendations. Save recognized books directly to your virtual bookshelf with persistent browser storage.</p>
+                    <button class="btn btn-primary cta-scan-trigger">Open Book Scanner</button>
                 </section>
             </div>
 
@@ -147,7 +156,14 @@
                                 <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
                                 <p class="drop-text">Drag & drop bookshelf image here</p>
                                 <p class="or-text">or</p>
-                                <label for="fileInput" class="btn btn-primary">Browse Files</label>
+                                <div class="upload-btn-group">
+                                    <label for="fileInput" class="btn btn-primary">
+                                        <i class="fa-solid fa-folder-open"></i> Browse Files
+                                    </label>
+                                    <button type="button" id="demoShelfBtn" class="btn btn-secondary">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Try Demo Shelf
+                                    </button>
+                                </div>
                                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
                                 <p class="file-limits">Supports JPG, PNG, WEBP (Max 5MB)</p>
                             </div>
@@ -194,7 +210,7 @@
                                     <i class="fa-solid fa-book placeholder-book"></i>
                                 </div>
                                 <h3>Ready to Discover</h3>
-                                <p>Provide a photo of a shelf of books on the left, add optional interests, and hit <strong>Scan Bookshelf</strong>. Gemini AI will identify your collection and recommend new reads matching your taste.</p>
+                                <p>Provide a photo of a shelf of books on the left, add optional interests, and hit <strong>Scan Bookshelf</strong> (or click <strong>Try Demo Shelf</strong>). Gemini AI will identify your collection and recommend new reads matching your taste.</p>
                             </div>
                         </div>
 
@@ -209,9 +225,18 @@
 
                         <!-- State 3: Display Results -->
                         <div id="resultsContent" class="results-container" style="display: none;">
+                            <div class="results-header-actions">
+                                <button id="copyResultsBtn" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-copy"></i> Copy Recommendations
+                                </button>
+                                <button id="saveAllToLibraryBtn" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-bookmark"></i> Save All to Library
+                                </button>
+                            </div>
+
                             <div class="scanned-book-card card">
                                 <div class="book-card-layout">
-                                    <!-- Dynamic CSS Book Pile / Shelf representation -->
+                                    <!-- Dynamic CSS Book Pile representation -->
                                     <div class="dynamic-cover-wrapper">
                                         <div class="shelf-books-pile">
                                             <div class="css-book-pile-item book-1" id="pileBook1"></div>
@@ -228,7 +253,10 @@
                                         
                                         <!-- Detected Books List -->
                                         <div class="detected-books-section">
-                                            <h3><i class="fa-solid fa-list-check"></i> Scanned Titles:</h3>
+                                            <div class="detected-header">
+                                                <h3><i class="fa-solid fa-list-check"></i> Scanned Titles:</h3>
+                                                <span class="detected-count-badge" id="detectedCountBadge">0 books</span>
+                                            </div>
                                             <ul class="detected-books-list" id="detectedBooksList">
                                                 <!-- Populated dynamically -->
                                             </ul>
@@ -253,7 +281,7 @@
                     <div class="library-header">
                         <div class="library-title-group">
                             <h2><i class="fa-solid fa-book-bookmark"></i> My Reading Library</h2>
-                            <p>Browse through all the books you've scanned, imported, and discovered.</p>
+                            <p id="librarySubtitle">Browse and manage all the books you've scanned, imported, and discovered.</p>
                         </div>
                         <div class="library-actions">
                             <div class="search-box">
@@ -263,12 +291,26 @@
                             <select id="libraryGenreFilter" class="genre-filter">
                                 <option value="all">All Genres</option>
                             </select>
-                            <button id="importLibraryBtn" class="btn btn-icon">
-                                <i class="fa-solid fa-cloud-arrow-down"></i> Import Library
+                            <button id="addBookManualBtn" class="btn btn-primary" title="Add Book Manually">
+                                <i class="fa-solid fa-plus"></i> <span>Add Book</span>
+                            </button>
+                            <button id="importLibraryBtn" class="btn btn-icon" title="Import Library">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> <span>Import</span>
+                            </button>
+                            <button id="exportLibraryBtn" class="btn btn-icon" title="Export Library">
+                                <i class="fa-solid fa-file-export"></i> <span>Export</span>
+                            </button>
+                            <button id="clearLibraryBtn" class="btn btn-icon btn-danger-hover" title="Clear Library">
+                                <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
                     </div>
                     
+                    <div class="library-stats-bar" id="libraryStatsBar">
+                        <span class="stat-badge"><i class="fa-solid fa-book"></i> <strong id="statTotalBooks">0</strong> Total Books</span>
+                        <span class="stat-badge"><i class="fa-solid fa-layer-group"></i> <strong id="statTotalGenres">0</strong> Genres</span>
+                    </div>
+
                     <div class="bookshelf-container">
                         <!-- Wooden/Glass Shelves visual container -->
                         <div class="virtual-shelf" id="virtualShelfContainer">
@@ -320,7 +362,7 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
-                    <small class="help-text">Your API key is saved locally in your browser's <code>localStorage</code> and never sent anywhere else.</small>
+                    <small class="help-text">Your API key is saved locally in your browser's <code>localStorage</code> and never sent to any external server.</small>
                 </div>
 
                 <div class="form-actions">
@@ -339,7 +381,7 @@
                 <span class="close-modal" id="closeImportModal">&times;</span>
             </div>
             <div class="modal-body">
-                <p class="import-intro">Simulate importing your Goodreads or personal collection. Paste book titles (one per line) or load our curated sample library instantly.</p>
+                <p class="import-intro">Import your Goodreads or personal book collection. Paste book titles (one per line, e.g. <code>Title - Author</code>) or load our curated starter library instantly.</p>
                 
                 <div class="form-group">
                     <label for="importPastedTitles">Paste Books (Format: Title - Author)</label>
@@ -357,7 +399,87 @@
         </div>
     </div>
 
-    <!-- Modal 3: Donations Modal -->
+    <!-- Modal 3: Manual Add Book Modal -->
+    <div id="addBookModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus-circle"></i> Add Book to Library</h2>
+                <span class="close-modal" id="closeAddBookModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="manualBookTitle">Book Title *</label>
+                    <input type="text" id="manualBookTitle" placeholder="e.g. Clean Code" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="manualBookAuthor">Author *</label>
+                    <input type="text" id="manualBookAuthor" placeholder="e.g. Robert C. Martin" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="manualBookGenre">Genre / Category</label>
+                    <input type="text" id="manualBookGenre" placeholder="e.g. Software Engineering" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="manualBookNotes">Notes / Thoughts (Optional)</label>
+                    <textarea id="manualBookNotes" rows="3" placeholder="Personal notes, key takeaways..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button id="cancelAddBook" class="btn btn-secondary">Cancel</button>
+                    <button id="saveManualBookBtn" class="btn btn-accent">Save to Shelf</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4: Book Details Modal -->
+    <div id="bookDetailModal" class="modal" style="display: none;">
+        <div class="modal-content card modal-lg">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-book-open"></i> Book Details</h2>
+                <span class="close-modal" id="closeBookDetailModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="book-detail-layout" id="bookDetailContent">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 5: Export Library Modal -->
+    <div id="exportModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-export"></i> Export Reading Library</h2>
+                <span class="close-modal" id="closeExportModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="import-intro">Export your entire library collection in your favorite format.</p>
+                <div class="form-group">
+                    <label>Choose Format</label>
+                    <div class="export-format-group">
+                        <button class="btn btn-secondary export-type-btn active" data-format="json"><i class="fa-solid fa-code"></i> JSON</button>
+                        <button class="btn btn-secondary export-type-btn" data-format="csv"><i class="fa-solid fa-table"></i> CSV</button>
+                        <button class="btn btn-secondary export-type-btn" data-format="markdown"><i class="fa-brands fa-markdown"></i> Markdown</button>
+                        <button class="btn btn-secondary export-type-btn" data-format="text"><i class="fa-solid fa-file-lines"></i> Text</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Preview</label>
+                    <textarea id="exportPreviewArea" rows="7" readonly></textarea>
+                </div>
+                <div class="form-actions-split">
+                    <button id="copyExportBtn" class="btn btn-secondary"><i class="fa-solid fa-copy"></i> Copy Text</button>
+                    <div class="right-actions">
+                        <button id="closeExportBtn" class="btn btn-secondary">Close</button>
+                        <button id="downloadExportBtn" class="btn btn-accent"><i class="fa-solid fa-download"></i> Download File</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 6: Donations Modal -->
     <div id="donateModal" class="modal" style="display: none;">
         <div class="modal-content card">
             <div class="modal-header">
@@ -366,8 +488,8 @@
             </div>
             <div class="modal-body text-center">
                 <i class="fa-solid fa-circle-nodes" style="font-size: 3rem; color: var(--accent-secondary); margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 118, 117, 0.4))"></i>
-                <p>This is a custom interactive demonstration of the **ShelfScanner** project—a powerful AI bookshelf scanner and book discovery dashboard built using Google's Gemini 3.6.</p>
-                <p>If you like this project and would like to support future open-source AI integrations, feel free to give it a star on GitHub!</p>
+                <p><strong>ShelfScanner</strong> is an open-source AI bookshelf analyzer and discovery engine powered by Google's Gemini Vision.</p>
+                <p>If you find this tool helpful, consider starring the repository on GitHub or sharing it with fellow readers!</p>
                 <div class="form-actions" style="justify-content: center; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 1.25rem;">
                     <a href="https://github.com/KGupta171025/SHELF-SCANNER" target="_blank" class="btn btn-accent"><i class="fa-brands fa-github"></i> Star on GitHub</a>
                     <button id="closeDonateBtn" class="btn btn-secondary">Close</button>
@@ -376,7 +498,7 @@
         </div>
     </div>
 
-    <!-- Modal 4: Contact Form Modal -->
+    <!-- Modal 7: Contact Form Modal -->
     <div id="contactModal" class="modal" style="display: none;">
         <div class="modal-content card">
             <div class="modal-header">
@@ -384,20 +506,20 @@
                 <span class="close-modal" id="closeContactModal">&times;</span>
             </div>
             <div class="modal-body">
-                <form id="contactForm" onsubmit="event.preventDefault(); alert('Message sent successfully (Simulation)!'); document.getElementById('contactModal').style.display='none';">
+                <form id="contactForm">
                     <div class="form-group">
                         <label for="contactName">Name</label>
-                        <input type="text" id="contactName" required placeholder="Enter your name" style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); color: var(--text-primary); outline: none;">
+                        <input type="text" id="contactName" required placeholder="Enter your name" class="form-control">
                     </div>
-                    <div class="form-group" style="margin-top: 1rem;">
+                    <div class="form-group">
                         <label for="contactEmail">Email</label>
-                        <input type="email" id="contactEmail" required placeholder="Enter your email" style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); color: var(--text-primary); outline: none;">
+                        <input type="email" id="contactEmail" required placeholder="Enter your email" class="form-control">
                     </div>
-                    <div class="form-group" style="margin-top: 1rem;">
+                    <div class="form-group">
                         <label for="contactMessage">Message</label>
-                        <textarea id="contactMessage" rows="4" required placeholder="Enter your message..." style="width: 100%;"></textarea>
+                        <textarea id="contactMessage" rows="4" required placeholder="Enter your message..."></textarea>
                     </div>
-                    <div class="form-actions" style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                    <div class="form-actions">
                         <button type="button" id="cancelContact" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-accent">Send Message</button>
                     </div>
@@ -405,6 +527,45 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal 8: Privacy Policy Modal -->
+    <div id="privacyModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-shield-halved"></i> Privacy Policy</h2>
+                <span class="close-modal" id="closePrivacyModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><strong>1. Local Storage Privacy:</strong> ShelfScanner stores your reading lists, preferences, and API keys exclusively inside your browser's private sandbox (<code>localStorage</code>).</p>
+                <p><strong>2. Direct API Mode:</strong> In Direct Gemini API mode, your requests and bookshelf images are transmitted directly from your browser to Google's official Gemini endpoint. No intermediate servers ever store your photos or API keys.</p>
+                <p><strong>3. Zero Tracking:</strong> We do not track, collect, sell, or profile your reading habits or personal information.</p>
+                <div class="form-actions">
+                    <button id="closePrivacyBtn" class="btn btn-primary">Understood</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 9: Terms & Conditions Modal -->
+    <div id="termsModal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-contract"></i> Terms & Conditions</h2>
+                <span class="close-modal" id="closeTermsModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><strong>1. Open-Source Usage:</strong> ShelfScanner is provided free of charge for personal and educational purposes.</p>
+                <p><strong>2. Gemini API Terms:</strong> When using your own Google Gemini API key, usage is subject to Google's Generative AI terms and rate limits.</p>
+                <p><strong>3. Disclaimer:</strong> Recommendations and shelf recognition are generated by AI and may occasionally contain inaccuracies.</p>
+                <div class="form-actions">
+                    <button id="closeTermsBtn" class="btn btn-primary">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <!-- Footer -->
     <footer>
